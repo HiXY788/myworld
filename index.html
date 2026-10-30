@@ -1,0 +1,2034 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我的世界 - 个人创作沙盘空间</title>
+    <!-- Vue 3 CDN -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class'
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700&display=swap');
+        .font-novel {
+            font-family: 'Noto Serif SC', 'Georgia', 'Source Han Serif CN', serif;
+        }
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .drag-over {
+            border: 2px dashed #10b981;
+            background-color: rgba(16, 185, 129, 0.1);
+        }
+        /* Glassmorphism card effects */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.45);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+        .dark .glass-card {
+            background: rgba(15, 23, 42, 0.45);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+        /* Custom 3D Book Cover styling */
+        .book-spine {
+            box-shadow: 5px 5px 15px rgba(0,0,0,0.15), -1px 0px 3px rgba(255,255,255,0.2) inset;
+        }
+    </style>
+</head>
+<body class="bg-[#faf6ef] text-slate-800 transition-colors duration-300 overflow-hidden">
+    <div id="app" :class="themeClass" class="h-screen w-screen flex flex-col relative font-sans">
+
+        <!-- ==================== 视图 A：大美书架主页 (刚点开网页时展示) ==================== -->
+        <div v-if="showBookshelf" class="flex-1 w-full h-full overflow-y-auto px-6 py-12 md:px-16 md:py-16 flex flex-col items-center">
+            <!-- 顶部装饰头部 -->
+            <header class="w-full max-w-6xl flex flex-col md:flex-row items-start md:items-center justify-between gap-6 mb-12">
+                <div>
+                    <h1 class="text-4xl md:text-5xl font-extrabold font-novel tracking-wider flex items-center gap-3">
+                        <span class="text-emerald-600 dark:text-emerald-400 drop-shadow-sm">🌌</span> 我的世界
+                    </h1>
+                    <p class="text-sm opacity-60 mt-2 font-medium tracking-wide">欢迎回来！在这里编织属于你的宏大世界、细腻情感与精妙史诗。</p>
+                </div>
+                <div class="flex items-center gap-3">
+                    <button @click="toggleTheme" class="px-4 py-2.5 rounded-xl border border-black/10 dark:border-white/10 glass-card font-medium flex items-center gap-2 hover:scale-[1.02] active:scale-95 transition-all">
+                        {{ theme === 'light' ? '🌙 护眼暗夜' : theme === 'sepia' ? '☀️ 极简浅色' : '🪵 温润复古' }}
+                    </button>
+                    <!-- 全局数据管理 -->
+                    <button @click="exportAllData" class="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm shadow-md shadow-indigo-600/10 flex items-center gap-1.5 transition-all">
+                        📥 导出备份
+                    </button>
+                    <button @click="triggerImport" class="px-4 py-2.5 rounded-xl bg-slate-600 hover:bg-slate-700 text-white font-semibold text-sm shadow-md shadow-slate-600/10 flex items-center gap-1.5 transition-all">
+                        📤 导入备份
+                    </button>
+                    <input type="file" ref="importFileInput" @change="importDataFromFile" accept=".json,.txt" class="hidden">
+                </div>
+            </header>
+
+            <!-- 统计数据面板卡片 -->
+            <section class="w-full max-w-6xl grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
+                <div class="p-5 rounded-2xl border border-black/5 dark:border-white/5 bg-white/40 dark:bg-slate-900/40 backdrop-blur-md flex flex-col justify-between">
+                    <span class="text-xs opacity-50 font-bold uppercase tracking-wider">创作书籍数</span>
+                    <span class="text-3xl font-extrabold font-novel mt-2 text-emerald-600 dark:text-emerald-400">{{ books.length }} <span class="text-xs font-normal">本</span></span>
+                </div>
+                <div class="p-5 rounded-2xl border border-black/5 dark:border-white/5 bg-white/40 dark:bg-slate-900/40 backdrop-blur-md flex flex-col justify-between">
+                    <span class="text-xs opacity-50 font-bold uppercase tracking-wider">全书卷累计</span>
+                    <span class="text-3xl font-extrabold font-novel mt-2 text-amber-600 dark:text-amber-400">{{ totalGlobalWordCount }} <span class="text-xs font-normal">字</span></span>
+                </div>
+                <div class="p-5 rounded-2xl border border-black/5 dark:border-white/5 bg-white/40 dark:bg-slate-900/40 backdrop-blur-md flex flex-col justify-between">
+                    <span class="text-xs opacity-50 font-bold uppercase tracking-wider">登场角色库</span>
+                    <span class="text-3xl font-extrabold font-novel mt-2 text-indigo-600 dark:text-indigo-400">{{ totalGlobalCharactersCount }} <span class="text-xs font-normal">位</span></span>
+                </div>
+                <div class="p-5 rounded-2xl border border-black/5 dark:border-white/5 bg-white/40 dark:bg-slate-900/40 backdrop-blur-md flex flex-col justify-between">
+                    <span class="text-xs opacity-50 font-bold uppercase tracking-wider">世界设定项</span>
+                    <span class="text-3xl font-extrabold font-novel mt-2 text-red-600 dark:text-red-400">{{ totalGlobalLoresCount }} <span class="text-xs font-normal">条</span></span>
+                </div>
+            </section>
+
+            <!-- 书籍列表展示 -->
+            <main class="w-full max-w-6xl flex-1 flex flex-col">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-xl font-bold font-novel flex items-center gap-2">
+                        <span>📚</span> 书卷藏架
+                    </h2>
+                    <button @click="createNewBook" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-md shadow-emerald-600/10 transition-all">
+                        ✨ 撰写新书
+                    </button>
+                </div>
+
+                <!-- 书架格层 -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 pb-12">
+                    <!-- 单本图书展示 -->
+                    <div v-for="book in books" :key="book.id" 
+                         class="group rounded-2xl border border-black/5 dark:border-white/5 bg-white/30 dark:bg-slate-900/30 backdrop-blur hover:bg-white/70 dark:hover:bg-slate-900/70 p-5 flex flex-col justify-between hover:shadow-xl hover:scale-[1.02] transition-all duration-300">
+                        <!-- 书皮造型与文字 -->
+                        <div class="flex gap-4">
+                            <!-- 3D 拟真小书皮 -->
+                            <div class="w-24 h-32 rounded-r-lg book-spine relative flex-shrink-0 flex flex-col justify-between p-3 overflow-hidden select-none"
+                                 :style="getBookGradient(book.id)">
+                                <!-- 书脊仿真阴影 -->
+                                <div class="absolute left-0 top-0 bottom-0 w-2.5 bg-black/10"></div>
+                                <div class="absolute left-2.5 top-0 bottom-0 w-0.5 bg-white/10"></div>
+                                <div class="text-[10px] text-white/70 font-semibold truncate">{{ getBookVolumesCount(book) }} 卷</div>
+                                <h3 class="text-sm font-bold text-white font-novel line-clamp-3 leading-snug mt-1 text-center pr-2 pl-4 break-words select-all">{{ book.title }}</h3>
+                                <div class="text-[9px] text-white/60 text-right truncate">我的世界</div>
+                            </div>
+
+                            <!-- 数据统计明细 -->
+                            <div class="flex-1 flex flex-col justify-between min-w-0 py-1">
+                                <h3 class="font-bold text-base truncate font-novel text-slate-800 dark:text-slate-100">{{ book.title }}</h3>
+                                <div class="flex flex-col gap-1 mt-2 text-xs opacity-70">
+                                    <div class="flex items-center gap-1.5 truncate">📝 <b>{{ getBookWordCount(book) }}</b> 字</div>
+                                    <div class="flex items-center gap-1.5 truncate">👥 <b>{{ book.characters?.length || 0 }}</b> 角色</div>
+                                    <div class="flex items-center gap-1.5 truncate">🏰 <b>{{ book.factions?.length || 0 }}</b> 势力</div>
+                                    <div class="flex items-center gap-1.5 truncate">💡 <b>{{ book.inspirations?.length || 0 }}</b> 脑洞</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 底部控制按钮组 -->
+                        <div class="grid grid-cols-3 gap-2 mt-5 border-t border-black/5 dark:border-white/5 pt-4">
+                            <button @click="enterBook(book.id)" class="col-span-1 px-2.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold text-center transition-all">
+                                ✍️ 创作
+                            </button>
+                            <button @click="renameSpecificBook(book)" class="px-2.5 py-1.5 hover:bg-black/5 dark:hover:bg-white/5 rounded-lg text-xs text-center border border-black/10 dark:border-white/10 transition-all">
+                                ✏️ 换名
+                            </button>
+                            <button @click="deleteSpecificBook(book)" class="px-2.5 py-1.5 hover:bg-red-50 dark:hover:bg-red-950/20 text-red-600 dark:text-red-400 rounded-lg text-xs text-center border border-transparent hover:border-red-200 dark:hover:border-red-950 transition-all">
+                                🗑️ 删除
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 占位增加新书卡片 -->
+                    <div @click="createNewBook" class="rounded-2xl border-2 border-dashed border-black/10 dark:border-white/10 hover:border-emerald-500/40 cursor-pointer p-8 flex flex-col items-center justify-center text-center gap-3 group bg-transparent hover:bg-emerald-500/5 hover:scale-[1.01] transition-all duration-300">
+                        <span class="text-3xl text-black/30 dark:text-white/30 group-hover:text-emerald-500 group-hover:scale-110 transition-all">➕</span>
+                        <div class="flex flex-col gap-1">
+                            <span class="font-bold text-sm font-novel">创建全新的构想书籍</span>
+                            <span class="text-xs opacity-50">点击开始编织一段全新的旅程</span>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+
+        <!-- ==================== 视图 B：主工作创作区 (进入书籍后展示) ==================== -->
+        <div v-else class="flex-1 w-full h-full flex relative overflow-hidden">
+            <!-- ==================== 左侧导航栏 ==================== -->
+            <aside class="w-64 flex-shrink-0 border-r flex flex-col transition-colors duration-300"
+                   :class="theme === 'dark' ? 'bg-slate-900 border-slate-800' : 'bg-[#f4eee1] border-amber-100'">
+
+                <!-- 标志与主菜单 -->
+                <div class="p-4 border-b flex flex-col gap-2" :class="theme === 'dark' ? 'border-slate-800' : 'border-amber-100'">
+                    <div class="flex items-center justify-between">
+                        <span class="text-lg font-bold font-novel tracking-wider flex items-center gap-1.5">
+                            <span>🖋️</span> 我的世界
+                        </span>
+                        <button @click="exitToBookshelf" class="px-2.5 py-1 rounded bg-black/5 hover:bg-black/10 dark:bg-white/5 dark:hover:bg-white/10 text-xs font-bold flex items-center gap-1" title="返回藏书架">
+                            📚 书架
+                        </button>
+                    </div>
+
+                    <!-- 工作区导航标签 -->
+                    <nav class="flex flex-col gap-1 mt-3">
+                        <button @click="activeView = 'editor'"
+                                :class="['flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-all text-left', activeView === 'editor' ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/10' : 'hover:bg-black/5 dark:hover:bg-white/5']">
+                            📝 创作空间
+                        </button>
+                        <button @click="activeView = 'kanban'"
+                                :class="['flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-all text-left', activeView === 'kanban' ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/10' : 'hover:bg-black/5 dark:hover:bg-white/5']">
+                            📋 剧情大纲看板
+                        </button>
+                        <button @click="activeView = 'timeline'"
+                                :class="['flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-all text-left', activeView === 'timeline' ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/10' : 'hover:bg-black/5 dark:hover:bg-white/5']">
+                            ⏳ 故事时间轴
+                        </button>
+                        <button @click="activeView = 'graph'"
+                                :class="['flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-all text-left', activeView === 'graph' ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/10' : 'hover:bg-black/5 dark:hover:bg-white/5']">
+                            🕸️ 关系连线图谱
+                        </button>
+                    </nav>
+
+                    <!-- 书籍切换与管理 -->
+                    <div class="mt-2 pt-2 border-t" :class="theme === 'dark' ? 'border-slate-800' : 'border-amber-100'">
+                        <label class="text-xs opacity-50 flex items-center justify-between">
+                            <span>当前正在创作</span>
+                        </label>
+                        <div class="flex gap-1 mt-1">
+                            <select v-model="currentBookId" @change="switchBook"
+                                    class="flex-1 min-w-0 px-2 py-1.5 rounded text-sm bg-white/50 dark:bg-slate-800/80 border border-black/10 dark:border-white/10 outline-none text-slate-800 dark:text-slate-100">
+                                <option v-for="book in books" :key="book.id" :value="book.id">{{ book.title }}</option>
+                            </select>
+                            <button @click="renameCurrentBook" class="px-2 bg-amber-600 hover:bg-amber-700 text-white rounded text-sm" title="重命名当前书籍">✏️</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 章节列表 -->
+                <div class="flex-1 overflow-y-auto p-3 flex flex-col gap-1">
+                    <div class="flex items-center justify-between px-2 py-1 text-xs">
+                        <span class="font-bold opacity-60 uppercase tracking-wider">章节目录</span>
+                        <div class="flex items-center gap-2">
+                            <button @click="collapseAllVolumes" class="hover:underline">折叠</button>
+                            <button @click="expandAllVolumes" class="hover:underline">展开</button>
+                            <button @click="createNewVolume" class="text-emerald-600 dark:text-emerald-400 hover:underline font-semibold">+ 新增分卷</button>
+                        </div>
+                    </div>
+
+                    <div v-if="currentBook" class="flex flex-col gap-1 mt-1">
+                        <div v-for="volume in currentBook.volumes" :key="volume.id" class="flex flex-col gap-1">
+                            <!-- Volume Header -->
+                            <div @click="toggleVolume(volume.id)"
+                                 class="flex items-center justify-between px-3 py-2 rounded-lg cursor-pointer group"
+                                 :class="theme === 'dark' ? 'bg-slate-800/50 hover:bg-slate-800' : 'bg-amber-100/50 hover:bg-amber-100/80'">
+                                 <div class="flex items-center gap-2">
+                                    <span :class="['transition-transform', expandedVolumeIds.includes(volume.id) ? 'rotate-90' : '']">▶</span>
+                                    <span class="font-bold text-sm font-novel">{{ volume.title }}</span>
+                                </div>
+                                <div class="hidden group-hover:flex items-center gap-2 text-xs">
+                                    <button @click.stop="createNewChapter(volume.id)" class="text-emerald-600 dark:text-emerald-400 hover:underline">新增章节</button>
+                                    <button @click.stop="renameVolume(volume)" title="重命名卷">✏️</button>
+                                    <button @click.stop="deleteVolume(volume.id)" class="text-red-400" title="删除卷">🗑️</button>
+                                </div>
+                            </div>
+
+                            <!-- Chapters within Volume (collapsible) -->
+                            <div v-if="expandedVolumeIds.includes(volume.id)" class="pl-4 flex flex-col gap-1 py-1">
+                                <div v-for="chapter in volume.chapters" :key="chapter.id"
+                                     @click="selectChapter(chapter.id)"
+                                     :class="[
+                                        'px-3 py-2 rounded-lg cursor-pointer transition-all flex items-center justify-between group text-sm',
+                                        currentChapterId === chapter.id
+                                            ? 'bg-emerald-600 text-white font-bold shadow-md shadow-emerald-600/10'
+                                            : 'hover:bg-black/5 dark:hover:bg-white/5'
+                                     ]">
+                                    <span class="truncate flex items-center gap-2">
+                                        <span>{{ chapter.title }}</span>
+                                    </span>
+                                    <span class="hidden group-hover:flex items-center gap-1 flex-shrink-0">
+                                        <button @click.stop="renameChapter(chapter)" class="hover:scale-110" title="重命名">✏️</button>
+                                        <button @click.stop="deleteChapter(chapter.id, volume.id)" class="hover:scale-110 text-red-400" title="删除">🗑️</button>
+                                    </span>
+                                </div>
+                                <div v-if="!volume.chapters || volume.chapters.length === 0" class="px-3 py-1 text-xs opacity-50">
+                                    暂无章节，点击上方“新增章节”开始创作。
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 底部智能同步与主题切换 -->
+                <div class="p-3 border-t text-xs flex flex-col gap-2"
+                     :class="theme === 'dark' ? 'border-slate-800' : 'border-amber-100'">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-1.5 opacity-75">
+                            <span class="inline-block w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                            <span>本地实时自动保存</span>
+                        </div>
+                        <button @click="toggleTheme" class="p-1 rounded hover:bg-black/5 dark:hover:bg-white/5 text-xs font-bold" title="切换背景主题">
+                            {{ theme === 'light' ? '🌙 护眼' : theme === 'sepia' ? '☀️ 浅色' : '🪵 温润' }}
+                        </button>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- ==================== 中间主显示区 ==================== -->
+            <main class="flex-1 flex flex-col relative transition-colors duration-300"
+                  :class="[theme === 'dark' ? 'bg-slate-950' : theme === 'sepia' ? 'bg-[#f4ecd8]' : 'bg-[#fffdf9]', zenMode ? 'p-0' : '']">
+
+                <!-- ==================== 视图一：核心文本编辑器 ==================== -->
+                <div v-if="activeView === 'editor'" class="flex-1 flex flex-col h-full">
+                    <!-- 编辑器顶部工具条 -->
+                    <header v-if="!zenMode" class="h-14 px-6 border-b flex items-center justify-between transition-colors duration-300"
+                            :class="theme === 'dark' ? 'border-slate-900 bg-slate-950/80' : 'border-amber-50/50 bg-[#fffdf9]/80'">
+                        <div class="flex items-center gap-3" v-if="currentChapter">
+                            <input type="text" v-model="currentChapter.title" @input="saveData"
+                                   class="bg-transparent font-novel font-bold text-lg border-b border-transparent hover:border-black/10 dark:hover:border-white/10 focus:border-emerald-500 outline-none px-1 py-0.5 w-64 transition-all">
+                            <span class="text-xs bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 px-2 py-0.5 rounded-full font-medium">
+                                {{ wordCount }} 字
+                            </span>
+                        </div>
+                        <div v-else class="text-sm opacity-50">请选择或新建一个章节开始码字</div>
+
+                        <div class="flex items-center gap-3 text-sm">
+                            <!-- 专注模式开关 -->
+                            <button @click="toggleZenMode" class="px-2.5 py-1.5 rounded-lg border hover:bg-black/5 dark:hover:bg-white/5 flex items-center gap-1"
+                                    :class="theme === 'dark' ? 'border-slate-800' : 'border-amber-100'" title="只留文字与灵感">
+                                👁️ 专注
+                            </button>
+
+                            <div class="flex items-center gap-1 border rounded-lg p-0.5 bg-black/5 dark:bg-white/5" :class="theme === 'dark' ? 'border-slate-800' : 'border-amber-100'">
+                                <button @click="fontSize = Math.max(12, fontSize - 2)" class="w-6 h-6 rounded hover:bg-black/10 dark:hover:bg-white/10 flex items-center justify-center font-bold">A-</button>
+                                <span class="px-1 text-xs select-none font-semibold">{{ fontSize }}px</span>
+                                <button @click="fontSize = Math.min(32, fontSize + 2)" class="w-6 h-6 rounded hover:bg-black/10 dark:hover:bg-white/10 flex items-center justify-center font-bold">A+</button>
+                            </div>
+
+                            <button @click="formatText" class="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-xs font-semibold flex items-center gap-1 transition-all">
+                                ✨ 一键排版
+                            </button>
+
+                            <!-- 导出菜单 -->
+                            <div class="relative">
+                                <button @click="showExportMenu = !showExportMenu" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold flex items-center gap-1 transition-all">
+                                    📥 导出作品
+                                </button>
+                                <div v-if="showExportMenu" class="absolute right-0 mt-1.5 w-40 rounded-lg shadow-xl border bg-white dark:bg-slate-900 border-black/10 dark:border-white/10 py-1 z-50">
+                                    <button @click="exportBook('txt')" class="w-full text-left px-4 py-2 hover:bg-black/5 dark:hover:bg-white/5 text-xs">导出单章 (.TXT)</button>
+                                    <button @click="exportBook('full-txt')" class="w-full text-left px-4 py-2 hover:bg-black/5 dark:hover:bg-white/5 text-xs">整本导出 (.TXT)</button>
+                                </div>
+                            </div>
+                        </div>
+                    </header>
+
+                    <!-- 极简专注模式下的悬浮浮窗 -->
+                    <div v-if="zenMode" class="absolute top-4 right-4 z-40 flex items-center gap-2">
+                        <span class="text-xs px-2 py-1 rounded bg-black/10 dark:bg-white/10 backdrop-blur">{{ wordCount }} 字</span>
+                        <button @click="toggleZenMode" class="px-2 py-1 text-xs rounded bg-emerald-600 hover:bg-emerald-700 text-white">退出专注</button>
+                    </div>
+
+                    <!-- 文本编辑核心视窗 -->
+                    <div class="flex-1 overflow-y-auto px-12 py-8 flex flex-col items-center relative" @click="focusEditor">
+                        <div v-if="currentChapter" class="w-full max-w-3xl flex flex-col gap-4 relative">
+                            <!-- 角色 @ 联想 -->
+                            <div v-if="showAutocomplete"
+                                 :style="{ top: autocompletePos.y + 'px', left: autocompletePos.x + 'px' }"
+                                 class="absolute z-50 bg-white dark:bg-slate-900 border border-black/10 dark:border-white/10 shadow-2xl rounded-lg w-64 py-1 text-sm max-h-48 overflow-y-auto text-slate-800 dark:text-slate-100">
+                                <div class="px-3 py-1 text-xs opacity-50 border-b border-black/5 dark:border-white/5">推荐快捷插入角色</div>
+                                <button v-for="char in filteredCharacters" :key="char.id"
+                                        @click="insertCharacter(char.name)"
+                                        class="w-full text-left px-3 py-2 hover:bg-emerald-600 hover:text-white flex flex-col items-start transition-colors">
+                                    <div class="flex items-center justify-between w-full">
+                                        <span class="font-bold">{{ char.name }}</span>
+                                        <span class="text-xs opacity-60">{{ char.role }}</span>
+                                    </div>
+                                    <div v-if="char.factionId" class="text-[10px] opacity-40">🏰 {{ getFactionNameById(char.factionId) }}</div>
+                                </button>
+                            </div>
+
+                            <textarea ref="novelTextarea"
+                                      v-model="currentChapter.content"
+                                      @input="onEditorInput"
+                                      @keydown="onEditorKeyDown"
+                                      :style="{ fontSize: fontSize + 'px', lineHeight: lineHeight }"
+                                      class="w-full min-h-[65vh] bg-transparent outline-none border-none resize-none font-novel tracking-wide text-justify focus:ring-0 leading-relaxed"
+                                      placeholder="在这里输入章节内容... (输入 @ 可以快速联动登场人物设定与羁绊)"></textarea>
+                        </div>
+                    </div>
+
+                    <!-- 编辑器底部状态条 -->
+                    <footer v-if="!zenMode" class="h-10 px-6 border-t flex items-center justify-between text-xs opacity-60"
+                            :class="theme === 'dark' ? 'border-slate-900 bg-slate-950' : 'border-amber-100 bg-[#fffdf9]'">
+                        <div class="flex items-center gap-4">
+                            <span>当前字数: <b>{{ wordCount }}</b></span>
+                            <span>当前书累计总字数: <b>{{ totalWordCount }}</b></span>
+                        </div>
+                        <span>按 <kbd class="px-1 py-0.5 rounded border border-black/20 dark:border-white/20">@</kbd> 呼叫人物设定，实时掌控庞大阵线。</span>
+                    </footer>
+                </div>
+
+                <!-- ==================== 视图二：📋 剧情大纲看板 ==================== -->
+                <div v-if="activeView === 'kanban'" class="flex-1 flex flex-col h-full p-6 overflow-hidden">
+                    <div class="flex items-center justify-between mb-4 flex-shrink-0">
+                        <div>
+                            <h2 class="text-xl font-bold font-novel">剧情大纲分栏沙盘</h2>
+                            <p class="text-xs opacity-60 mt-0.5">将核心情节点做成卡片，通过拖拽进行“起、承、转、合”的情节节奏规划。</p>
+                        </div>
+                        <button @click="addNewKanbanCard" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold">+ 增加情节卡片</button>
+                    </div>
+
+                    <!-- 看板栏位 -->
+                    <div class="flex-1 grid grid-cols-4 gap-4 overflow-y-auto pb-4">
+                        <div v-for="col in kanbanColumns" :key="col.id"
+                             @dragover.prevent
+                             @drop="onDropCard($event, col.id)"
+                             class="rounded-xl p-3 flex flex-col gap-3 min-h-[400px] transition-colors"
+                             :class="theme === 'dark' ? 'bg-slate-900/40 border border-slate-800' : 'bg-[#f5ebd7] border border-amber-100'">
+
+                            <div class="flex items-center justify-between border-b pb-1.5" :class="theme === 'dark' ? 'border-slate-800' : 'border-amber-100'">
+                                <span class="font-bold text-sm font-novel text-emerald-700 dark:text-emerald-400">{{ col.name }}</span>
+                                <span class="text-xs bg-emerald-500/10 text-emerald-600 px-2 py-0.5 rounded-full font-bold">
+                                    {{ getCardsByColumn(col.id).length }}
+                                </span>
+                            </div>
+
+                            <!-- 拖拽卡片 -->
+                            <div class="flex-1 flex flex-col gap-2 overflow-y-auto no-scrollbar">
+                                <div v-for="card in getCardsByColumn(col.id)" :key="card.id"
+                                     draggable="true"
+                                     @dragstart="onDragStartCard($event, card.id)"
+                                     class="p-3 rounded-lg border bg-white dark:bg-slate-800 hover:shadow-md cursor-grab active:cursor-grabbing transition-all group relative"
+                                     :class="theme === 'dark' ? 'border-slate-700' : 'border-amber-100'">
+                                    <div class="font-semibold text-xs text-amber-700 dark:text-amber-400 mb-1 flex items-center justify-between">
+                                        <span>{{ card.title }}</span>
+                                        <div class="opacity-0 group-hover:opacity-100 flex gap-1 transition-opacity">
+                                            <button @click="editKanbanCard(card)" class="hover:text-emerald-600">✏️</button>
+                                            <button @click="deleteKanbanCard(card.id)" class="hover:text-red-500">🗑️</button>
+                                        </div>
+                                    </div>
+                                    <p class="text-[11px] opacity-70 leading-relaxed">{{ card.desc || '双击编辑情节概述...' }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ==================== 视图三：⏳ 故事时间轴 ==================== -->
+                <div v-if="activeView === 'timeline'" class="flex-1 flex flex-col h-full p-6 overflow-hidden">
+                    <div class="flex items-center justify-between mb-4 flex-shrink-0">
+                        <div>
+                            <h2 class="text-xl font-bold font-novel">故事时间轴</h2>
+                            <p class="text-xs opacity-60 mt-0.5">按时间/故事顺序编排关键事件，拖拽卡片调整顺序。</p>
+                        </div>
+                        <button @click="addNewTimelineEvent" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold">+ 新增时间节点</button>
+                    </div>
+
+                    <div class="flex-1 overflow-y-auto no-scrollbar pr-4">
+                        <div class="relative pl-6 border-l-2 border-dashed" :class="theme === 'dark' ? 'border-slate-800' : 'border-amber-200'">
+                            <!-- Timeline Events -->
+                            <div v-if="currentBook && currentBook.timeline?.length > 0" class="flex flex-col gap-6">
+                                <div v-for="(event, index) in currentBook.timeline" :key="event.id"
+                                     class="relative group"
+                                     draggable="true"
+                                     @dragstart="onTimelineDragStart($event, event.id)"
+                                     @dragover.prevent="onTimelineDragOver($event, event.id)"
+                                     @dragleave="onTimelineDragLeave($event)"
+                                     @drop="onTimelineDrop($event, event.id)">
+                                    <!-- Dot on the line -->
+                                    <div class="absolute -left-[35px] top-1 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold"
+                                         :class="theme === 'dark' ? 'bg-slate-800 border-2 border-emerald-500 text-emerald-400' : 'bg-amber-100 border-2 border-emerald-500 text-emerald-700'">
+                                        {{ index + 1 }}
+                                    </div>
+
+                                    <div class="p-4 rounded-lg border bg-white/40 dark:bg-slate-800/40 cursor-grab active:cursor-grabbing transition-all" :class="theme === 'dark' ? 'border-slate-800' : 'border-amber-100'">
+                                        <div class="flex items-center justify-between mb-2">
+                                            <div class="flex items-center gap-3">
+                                                <span class="font-bold text-sm font-novel text-amber-700 dark:text-amber-400">{{ event.title }}</span>
+                                                <input type="text" v-model="event.time" @change="saveData" placeholder="时间/纪元/顺序..."
+                                                       class="text-xs px-2 py-0.5 rounded bg-black/5 dark:bg-white/5 border border-transparent hover:border-black/10 dark:hover:border-white/10 outline-none focus:border-emerald-500 transition-all w-32">
+                                            </div>
+                                            <div class="opacity-0 group-hover:opacity-100 flex gap-2 transition-opacity">
+                                                <button @click="editTimelineEvent(event)" class="text-sm hover:text-emerald-600">✏️ 编辑</button>
+                                                <button @click="deleteTimelineEvent(event.id)" class="text-sm hover:text-red-500">🗑️ 删除</button>
+                                            </div>
+                                        </div>
+                                        <p class="text-xs opacity-75 leading-relaxed whitespace-pre-wrap">{{ event.details || '点击“编辑”按钮添加事件详情...' }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div v-else class="text-center py-10 text-sm opacity-50">
+                                还没有任何时间节点，点击右上角开始创建你的故事线吧。
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ==================== 视图四：🕸️ 关系连线图谱 ==================== -->
+                <div v-if="activeView === 'graph'" class="flex-1 flex flex-col p-6 overflow-hidden">
+                    <div class="flex items-center justify-between mb-2 flex-shrink-0">
+                        <div>
+                            <h2 class="text-xl font-bold font-novel">人际关系图志网络</h2>
+                            <p class="text-xs opacity-60">点击角色节点以聚焦其关系网，点击空白处返回全局视图。</p>
+                        </div>
+                    </div>
+
+                    <!-- 绘图核心网 -->
+                    <div class="flex-1 border rounded-2xl relative overflow-hidden flex items-center justify-center bg-slate-900/5 dark:bg-black/20"
+                         @click="focusedGraphNodeId = null"
+                         :class="theme === 'dark' ? 'border-slate-800' : 'border-amber-100'">
+
+                        <!-- 使用 SVG 自适应渲染圆周人际关系树 -->
+                        <svg class="w-full h-full max-w-[600px] max-h-[600px]" viewBox="0 0 500 500">
+                            <!-- 定义箭头标志 -->
+                            <defs>
+                                <marker id="arrow" viewBox="0 0 10 10" refX="18" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                                    <path d="M 0 0 L 10 5 L 0 10 z" fill="#10b981" />
+                                </marker>
+                            </defs>
+
+                            <!-- 连线与关系标注 -->
+                            <g v-for="line in calculatedRelations" :key="line.id">
+                                <line :x1="line.x1" :y1="line.y1" :x2="line.x2" :y2="line.y2"
+                                      stroke="#10b981" stroke-width="1.5" stroke-dasharray="4,4" marker-end="url(#arrow)" class="opacity-60" />
+                                <text :x="line.mx" :y="line.my" :fill="theme === 'dark' ? '#f59e0b' : '#d97706'" font-size="10" font-weight="bold" text-anchor="middle" paint-order="stroke" stroke-width="3" :stroke="theme === 'dark' ? '#1e293b' : '#fffdf9'">
+                                    {{ line.label }}
+                                </text>
+                            </g>
+
+                            <!-- 角色圆点节点 -->
+                            <g v-for="node in calculatedNodes" :key="node.id"
+                               @click.stop="focusedGraphNodeId = node.id"
+                               class="cursor-pointer group transition-opacity duration-300"
+                               :style="{ opacity: node.opacity }">
+                                <circle :cx="node.x" :cy="node.y" r="22" :fill="node.isFocused ? '#f59e0b' : '#059669'" class="group-hover:fill-emerald-500 transition-colors" />
+                                <text :x="node.x" :y="node.y + 4" fill="#ffffff" font-size="10" font-weight="bold" text-anchor="middle">
+                                    {{ node.name }}
+                                </text>
+                                <!-- 节点高亮圈 -->
+                                <circle :cx="node.x" :cy="node.y" r="26" fill="none" stroke="#10b981" stroke-width="1.5" class="opacity-0 group-hover:opacity-100 transition-opacity" />
+                            </g>
+                        </svg>
+
+                        <!-- 图例浮窗 -->
+                        <div class="absolute bottom-4 left-4 text-[10px] p-3 rounded-lg border bg-white/80 dark:bg-slate-900/80 backdrop-blur"
+                             :class="theme === 'dark' ? 'border-slate-800' : 'border-amber-100'">
+                            <div class="flex items-center gap-1.5 mb-1"><span class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-600"></span> 登场角色节点 (点击可聚焦)</div>
+                            <div class="flex items-center gap-1.5"><span class="inline-block w-4 h-0.5 border-t border-dashed border-emerald-500"></span> 人际多向连线 / 羁绊</div>
+                        </div>
+                    </div>
+                </div>
+
+            </main>
+
+            <!-- ==================== 右侧栏：角色、势力与设定集 ==================== -->
+            <aside v-if="!zenMode" class="w-80 flex-shrink-0 border-l flex flex-col transition-colors duration-300"
+                   :class="theme === 'dark' ? 'bg-slate-900 border-slate-800' : 'bg-[#f4eee1] border-amber-100'">
+
+                <!-- 标签页头部 -->
+                <div class="grid grid-cols-4 border-b text-center text-xs" :class="theme === 'dark' ? 'border-slate-800' : 'border-amber-100'">
+                    <button @click="rightTab = 'characters'"
+                            :class="['py-2.5 font-bold border-b-2 transition-all',
+                                     rightTab === 'characters'
+                                     ? 'border-emerald-600 text-emerald-600 dark:text-emerald-400'
+                                     : 'border-transparent opacity-60 hover:opacity-100']">
+                        👥 角色 ({{ currentBook?.characters?.length || 0 }})
+                    </button>
+                    <button @click="rightTab = 'factions'"
+                            :class="['py-2.5 font-bold border-b-2 transition-all',
+                                     rightTab === 'factions'
+                                     ? 'border-emerald-600 text-emerald-600 dark:text-emerald-400'
+                                     : 'border-transparent opacity-60 hover:opacity-100']">
+                        🏰 势力 ({{ currentBook?.factions?.length || 0 }})
+                    </button>
+                    <button @click="rightTab = 'lores'"
+                            :class="['py-2.5 font-bold border-b-2 transition-all',
+                                     rightTab === 'lores'
+                                     ? 'border-emerald-600 text-emerald-600 dark:text-emerald-400'
+                                     : 'border-transparent opacity-60 hover:opacity-100']">
+                        🗺️ 设定 ({{ currentBook?.lores?.length || 0 }})
+                    </button>
+                    <button @click="rightTab = 'inspirations'"
+                            :class="['py-2.5 font-bold border-b-2 transition-all',
+                                     rightTab === 'inspirations'
+                                     ? 'border-emerald-600 text-emerald-600 dark:text-emerald-400'
+                                     : 'border-transparent opacity-60 hover:opacity-100']">
+                        💡 灵感 ({{ currentBook?.inspirations?.length || 0 }})
+                    </button>
+                </div>
+
+                <!-- Tab 1: 角色图志 -->
+                <div v-show="rightTab === 'characters'" class="flex-1 overflow-y-auto p-4 flex flex-col gap-4">
+                    <div class="flex items-center justify-between text-xs">
+                         <div class="relative">
+                            <select v-model="characterSortOrder" class="pl-2 pr-6 py-1 rounded-md text-xs font-semibold bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 outline-none appearance-none cursor-pointer">
+                                <option value="default">默认顺序</option>
+                                <option value="name">名字顺序</option>
+                                <option value="custom">自定义</option>
+                            </select>
+                        </div>
+                        <div class="flex gap-2">
+                            <button @click="collapseAllChars" class="font-semibold text-slate-500 hover:underline">折叠</button>
+                            <button @click="expandAllChars" class="font-semibold text-slate-500 hover:underline">展开</button>
+                            <button @click="addNewCharacter" class="text-emerald-600 dark:text-emerald-400 hover:underline font-semibold">+ 新角色</button>
+                        </div>
+                    </div>
+
+                    <div v-if="currentBook" class="flex flex-col gap-3">
+                        <div v-for="char in sortedCharacters" :key="char.id"
+                             :draggable="characterSortOrder === 'custom'"
+                             @dragstart="onCharDragStart($event, char.id)"
+                             @dragover.prevent="onCharDragOver($event, char.id)"
+                             @drop="onCharDrop($event, char.id)"
+                             :class="['p-3 rounded-lg border bg-white/40 dark:bg-slate-800/40 hover:bg-white/60 dark:hover:bg-slate-800/60 transition-all flex flex-col gap-1.5 group relative',
+                                      characterSortOrder === 'custom' ? 'cursor-move' : '']"
+                             :class="[theme === 'dark' ? 'border-slate-800' : 'border-amber-100']">
+
+                            <div class="flex items-center justify-between cursor-pointer" @click="toggleCharExpand(char.id)">
+                                <span class="font-bold text-sm text-emerald-700 dark:text-emerald-400 font-novel">{{ char.name }}</span>
+                                <span v-if="!expandedCharIds.includes(char.id)" class="text-xs px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-600 dark:text-amber-400 font-semibold">{{ char.role }}</span>
+                            </div>
+
+                            <!-- Collapsible section -->
+                            <div v-if="expandedCharIds.includes(char.id)">
+                                <div class="flex items-center justify-between text-xs my-1">
+                                    <span class="px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-600 dark:text-amber-400 font-semibold">{{ char.role }}</span>
+                                    <div v-if="char.group" class="flex items-center gap-1 opacity-90">
+                                         <span class="px-1.5 py-0.5 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-semibold">{{ char.group }}</span>
+                                    </div>
+                                </div>
+
+                                <div v-if="char.factionId" class="text-xs flex items-center gap-1 opacity-90 mt-1.5">
+                                    <span class="opacity-50">🏰 势力/家族:</span>
+                                    <span class="font-bold text-amber-700 dark:text-amber-400">{{ getFactionNameById(char.factionId) }}</span>
+                                </div>
+
+                                <p class="text-xs opacity-75 leading-relaxed whitespace-pre-wrap mt-2">{{ char.desc || '尚未编辑角色简介。' }}</p>
+
+                                <!-- Grouped Relationships with Linked bidirectional pairing fix -->
+                                <div v-if="char.relationships && char.relationships.length > 0" class="mt-2 pt-2 border-t border-dashed border-black/5 dark:border-white/5 flex flex-col gap-1.5">
+                                    <span class="text-[10px] opacity-40 font-bold uppercase tracking-wider">🔗 角色羁绊与联动:</span>
+                                    <div v-for="(names, relationName) in groupRelationships(char)" :key="relationName" class="flex items-baseline gap-1.5 text-[11px]">
+                                        <b class="text-amber-700 dark:text-amber-300 font-bold">{{ relationName }}:</b>
+                                        <span class="text-emerald-700 dark:text-emerald-300">{{ names.join(', ') }}</span>
+                                    </div>
+                                </div>
+
+                                <div class="flex items-center justify-end mt-2">
+                                    <div class="flex gap-1.5 text-xs">
+                                        <button @click="editCharacter(char)" class="hover:scale-105">✏️</button>
+                                        <button @click="deleteCharacter(char.id)" class="text-red-500 hover:scale-105">🗑️</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab 2: 势力管理 -->
+                <div v-show="rightTab === 'factions'" class="flex-1 overflow-y-auto p-4 flex flex-col gap-4">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-bold opacity-60">势力与组织生态集</span>
+                        <button @click="addNewFaction" class="text-xs text-emerald-600 dark:text-emerald-400 hover:underline">+ 新增势力设定</button>
+                    </div>
+
+                    <div v-if="currentBook" class="flex flex-col gap-3">
+                        <div v-for="fac in currentBook.factions" :key="fac.id"
+                             class="p-3 rounded-lg border bg-white/40 dark:bg-slate-800/40 hover:bg-white/60 dark:hover:bg-slate-800/60 transition-all flex flex-col gap-1 group relative"
+                             :class="theme === 'dark' ? 'border-slate-800' : 'border-amber-100'">
+                            <div class="flex items-center justify-between">
+                                <span class="font-bold text-sm font-novel text-amber-700 dark:text-amber-400">{{ fac.name }}</span>
+                                <span class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-semibold">{{ fac.type }}</span>
+                            </div>
+                            <p class="text-xs opacity-75 leading-relaxed whitespace-pre-wrap">{{ fac.desc || '暂无详细背景介绍。' }}</p>
+
+                            <!-- Show characters belonging to this faction -->
+                            <div class="mt-2 pt-2 border-t border-dashed border-black/5 dark:border-white/5 flex flex-col gap-1">
+                                <span class="text-[10px] opacity-40 font-bold uppercase tracking-wider">👥 麾下成员:</span>
+                                <div class="flex flex-wrap gap-1">
+                                    <span v-for="c in currentBook.characters.filter(char => char.factionId === fac.id)" :key="c.id"
+                                          class="text-[9px] px-1.5 py-0.5 rounded bg-slate-500/15 text-slate-700 dark:text-slate-300">
+                                        {{ c.name }}
+                                    </span>
+                                    <span v-if="currentBook.characters.filter(char => char.factionId === fac.id).length === 0" class="text-[9px] opacity-40 italic">
+                                        暂无登场成员
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="hidden group-hover:flex absolute right-2 bottom-2 gap-1.5 text-xs bg-slate-900/10 dark:bg-white/10 px-1.5 py-0.5 rounded backdrop-blur">
+                                <button @click="editFaction(fac)" class="hover:scale-105">✏️ 编辑</button>
+                                <button @click="deleteFaction(fac.id)" class="text-red-500 hover:scale-105">🗑️</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab 3: 世界设定 -->
+                <div v-show="rightTab === 'lores'" class="flex-1 overflow-y-auto p-4 flex flex-col gap-4">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-bold opacity-60">背景大纲与世界设定</span>
+                        <button @click="addNewLore" class="text-xs text-emerald-600 dark:text-emerald-400 hover:underline">+ 新增设定词条</button>
+                    </div>
+
+                    <div v-if="currentBook" class="flex flex-col gap-3">
+                        <div v-for="lore in currentBook.lores" :key="lore.id"
+                             class="p-3 rounded-lg border bg-white/40 dark:bg-slate-800/40 hover:bg-white/60 dark:hover:bg-slate-800/60 transition-all flex flex-col gap-1 group relative"
+                             :class="theme === 'dark' ? 'border-slate-800' : 'border-amber-100'">
+                            <div class="flex items-center justify-between">
+                                <span class="font-bold text-sm font-novel text-amber-700 dark:text-amber-400"># {{ lore.key }}</span>
+                                <span class="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-600 dark:text-amber-400 font-semibold">{{ lore.type }}</span>
+                            </div>
+                            <p class="text-xs opacity-75 leading-relaxed whitespace-pre-wrap">{{ lore.value || '词条尚未编修。' }}</p>
+                            <div class="hidden group-hover:flex absolute right-2 bottom-2 gap-1.5 text-xs bg-slate-900/10 dark:bg-white/10 px-1.5 py-0.5 rounded backdrop-blur">
+                                <button @click="editLore(lore)" class="hover:scale-105">✏️ 编辑</button>
+                                <button @click="deleteLore(lore.id)" class="text-red-500 hover:scale-105">🗑️</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab 4: 脑洞与灵感备忘录 -->
+                <div v-show="rightTab === 'inspirations'" class="flex-1 overflow-y-auto p-4 flex flex-col gap-4">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-bold opacity-60">灵感与碎片化脑洞库</span>
+                        <button @click="addNewInspiration" class="text-xs text-emerald-600 dark:text-emerald-400 hover:underline">+ 记录新脑洞</button>
+                    </div>
+
+                    <div v-if="currentBook" class="flex flex-col gap-3">
+                        <div v-for="ins in currentBook.inspirations" :key="ins.id"
+                             class="p-3 rounded-lg border bg-white/40 dark:bg-slate-800/40 hover:bg-white/60 dark:hover:bg-slate-800/60 transition-all flex flex-col gap-2 group relative"
+                             :class="theme === 'dark' ? 'border-slate-800' : 'border-amber-100'">
+                            <div class="flex items-center justify-between">
+                                <span class="font-bold text-sm font-novel text-indigo-700 dark:text-indigo-400">💡 {{ ins.title }}</span>
+                                <span class="text-[9px] px-1.5 py-0.5 rounded bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-semibold">备忘</span>
+                            </div>
+                            <p class="text-xs opacity-75 leading-relaxed whitespace-pre-wrap">{{ ins.content || '暂无脑洞细节。' }}</p>
+
+                            <!-- Actions -->
+                            <div class="flex gap-2 mt-1 pt-2 border-t border-dashed border-black/5 dark:border-white/5">
+                                <button @click="insertInspirationToEditor(ins.content)" class="text-[10px] px-2 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded font-semibold transition-all">
+                                    ✍️ 插入光标处
+                                </button>
+                            </div>
+
+                            <div class="hidden group-hover:flex absolute right-2 bottom-2 gap-1.5 text-xs bg-slate-900/10 dark:bg-white/10 px-1.5 py-0.5 rounded backdrop-blur">
+                                <button @click="editInspiration(ins)" class="hover:scale-105">✏️ 编辑</button>
+                                <button @click="deleteInspiration(ins.id)" class="text-red-500 hover:scale-105">🗑️</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+        </div>
+
+        <!-- ==================== 模态弹框一：通用属性编辑窗口 ==================== -->
+        <div v-if="editingItem" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in">
+            <div class="w-full max-w-lg bg-white dark:bg-slate-900 rounded-xl shadow-2xl p-6 border border-black/10 dark:border-white/10 max-h-[90vh] overflow-y-auto text-slate-800 dark:text-slate-100">
+                <h3 class="text-lg font-bold font-novel mb-4 text-emerald-600 dark:text-emerald-400">
+                    {{ editingItem.type === 'char' ? '编修人物卡片与关系网' :
+                       editingItem.type === 'lore' ? '编修世界观设定' :
+                       editingItem.type === 'faction' ? '编修势力与组织设定' :
+                       editingItem.type === 'timeline' ? '编修时间轴节点' : '编修灵感碎片' }}
+                </h3>
+                <div class="flex flex-col gap-3">
+                    <!-- 人物属性 -->
+                    <div v-if="editingItem.type === 'char'">
+                        <label class="text-xs opacity-60 block mb-1">角色姓名</label>
+                        <input type="text" v-model="editingItem.name" class="w-full px-3 py-2 rounded bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 outline-none focus:border-emerald-500 text-sm">
+                    </div>
+                    <div v-if="editingItem.type === 'char'">
+                        <label class="text-xs opacity-60 block mb-1">身份地位</label>
+                        <input type="text" v-model="editingItem.role" class="w-full px-3 py-2 rounded bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 outline-none focus:border-emerald-500 text-sm">
+                    </div>
+                    <div v-if="editingItem.type === 'char'">
+                        <label class="text-xs opacity-60 block mb-1">角色分组 (例如：男主团, 反派, etc.)</label>
+                        <input type="text" v-model="editingItem.group" placeholder="例如：男主团, 后宫, 反派..." class="w-full px-3 py-2 rounded bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 outline-none focus:border-emerald-500 text-sm">
+                    </div>
+                    <div v-if="editingItem.type === 'char'">
+                        <label class="text-xs opacity-60 block mb-1">所属家族 / 门派势力 (动态复用下拉)</label>
+                        <div class="flex gap-1.5">
+                            <select v-model="editingItem.factionId" class="flex-1 px-3 py-2 rounded bg-white dark:bg-slate-800 border border-black/10 dark:border-white/10 text-sm outline-none focus:border-emerald-500 text-slate-800 dark:text-slate-100">
+                                <option value="">-- 无 / 独立散修 --</option>
+                                <option v-for="fac in currentBook.factions" :key="fac.id" :value="fac.id">
+                                    {{ fac.name }} ({{ fac.type }})
+                                </option>
+                            </select>
+                            <button @click="quickCreateFaction" class="px-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded text-xs font-semibold" title="快速注册并套用新组织">+ 快速新建</button>
+                        </div>
+                    </div>
+
+                    <div v-if="editingItem.type === 'char'">
+                        <label class="text-xs opacity-60 block mb-1">角色简介、性格与设定</label>
+                        <textarea v-model="editingItem.desc" rows="5" class="w-full px-3 py-2 rounded bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 outline-none focus:border-emerald-500 resize-none text-sm" placeholder="在这里详细描述角色的背景故事、性格特点、外貌服饰等..."></textarea>
+                    </div>
+
+                    <!-- 人物多向羁绊 (Linked bidirectional pairing layout) -->
+                    <div v-if="editingItem.type === 'char'" class="border-t border-black/5 dark:border-white/5 pt-3 mt-1">
+                        <div class="flex items-center justify-between mb-2">
+                            <label class="text-xs font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">🔗 绑定此人与其他角色的羁绊 (自动双向匹配同步)</label>
+                            <button @click="addRelationToEditing" class="text-xs text-emerald-600 dark:text-emerald-400 hover:underline">+ 绑定新羁绊</button>
+                        </div>
+                        <div class="flex flex-col gap-2 max-h-36 overflow-y-auto pr-1">
+                            <div v-for="(rel, index) in editingItem.relationships" :key="index" class="flex gap-2 items-center">
+                                <span class="text-xs opacity-50">至</span>
+                                <select v-model="rel.targetId" class="flex-1 px-2 py-1.5 rounded bg-white dark:bg-slate-800 border border-black/10 dark:border-white/10 text-xs text-slate-800 dark:text-slate-100">
+                                    <option value="">-- 选择目标角色 --</option>
+                                    <option v-for="c in currentBook.characters" :key="c.id" :value="c.id" v-show="c.id !== editingItem.id">
+                                        {{ c.name }} {{ c.factionId ? '(' + getFactionNameById(c.factionId) + ')' : '' }}
+                                    </option>
+                                </select>
+                                <span class="text-xs opacity-50">关系</span>
+                                <input type="text" v-model="rel.relationName" placeholder="如: 恋人 / 宿敌" class="flex-1 px-2 py-1.5 rounded bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-xs outline-none focus:border-emerald-500">
+                                <button @click="editingItem.relationships.splice(index, 1)" class="text-red-400 text-xs hover:scale-110 px-1 font-bold">✕</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 设定词条 -->
+                    <div v-if="editingItem.type === 'lore'">
+                        <label class="text-xs opacity-60 block mb-1">设定词条主题</label>
+                        <input type="text" v-model="editingItem.key" class="w-full px-3 py-2 rounded bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 outline-none focus:border-emerald-500 text-sm">
+                    </div>
+                    <div v-if="editingItem.type === 'lore'">
+                        <label class="text-xs opacity-60 block mb-1">设定类别</label>
+                        <div class="flex gap-2">
+                            <input type="text" v-model="editingItem.category" placeholder="自定义类别" class="flex-1 px-3 py-2 rounded bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 outline-none focus:border-emerald-500 text-sm">
+                            <select @change="editingItem.category = $event.target.value; $event.target.value = ''" class="px-2 py-2 rounded bg-white dark:bg-slate-800 border text-xs text-slate-800 dark:text-slate-100">
+                                <option value="">-- 快速模板 --</option>
+                                <option value="地理与世界观">🌍 地理与世界观</option>
+                                <option value="势力与组织">🏰 势力与组织</option>
+                                <option value="修炼与异能">⚡ 修炼与异能</option>
+                                <option value="科技与装备">🚀 科技与装备</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- 势力与家族属性 -->
+                    <div v-if="editingItem.type === 'faction'">
+                        <label class="text-xs opacity-60 block mb-1">势力/家族名称</label>
+                        <input type="text" v-model="editingItem.name" class="w-full px-3 py-2 rounded bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 outline-none focus:border-emerald-500 text-sm">
+                    </div>
+                    <div v-if="editingItem.type === 'faction'">
+                        <label class="text-xs opacity-60 block mb-1">势力类型</label>
+                        <div class="flex gap-1.5">
+                            <select v-model="editingItem.factionType" class="flex-1 w-full px-3 py-2 rounded bg-white dark:bg-slate-800 border text-sm text-slate-800 dark:text-slate-100">
+                                <option v-for="ftype in currentBook.factionTypes" :key="ftype" :value="ftype">{{ ftype }}</option>
+                            </select>
+                            <button @click="showFactionTypeManager = true" class="px-3 bg-amber-600 hover:bg-amber-700 text-white rounded text-xs font-semibold" title="管理所有势力类型">管理类型</button>
+                        </div>
+                    </div>
+
+                    <!-- 灵感属性 -->
+                    <div v-if="editingItem.type === 'inspiration'">
+                        <label class="text-xs opacity-60 block mb-1">灵感标题/摘要</label>
+                        <input type="text" v-model="editingItem.title" class="w-full px-3 py-2 rounded bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 outline-none focus:border-emerald-500 text-sm">
+                    </div>
+
+                    <!-- 时间轴节点属性 -->
+                    <div v-if="editingItem.type === 'timeline'">
+                        <label class="text-xs opacity-60 block mb-1">事件标题</label>
+                        <input type="text" v-model="editingItem.title" class="w-full px-3 py-2 rounded bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 outline-none focus:border-emerald-500 text-sm">
+                    </div>
+                    <div v-if="editingItem.type === 'timeline'">
+                        <label class="text-xs opacity-60 block mb-1">发生时间 / 顺序</label>
+                        <input type="text" v-model="editingItem.time" placeholder="例如：神启元年, 第 3 章后, 2049年..." class="w-full px-3 py-2 rounded bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 outline-none focus:border-emerald-500 text-sm">
+                    </div>
+
+                    <!-- 文本详实信息 -->
+                    <div v-if="editingItem.type === 'lore' || editingItem.type === 'faction'">
+                        <label class="text-xs opacity-60 block mb-1">详细背景档案</label>
+                        <textarea v-model="editingItem.desc" rows="5" class="w-full px-3 py-2 rounded bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 outline-none focus:border-emerald-500 resize-none text-sm"></textarea>
+                    </div>
+                    <div v-if="editingItem.type === 'inspiration'">
+                        <label class="text-xs opacity-60 block mb-1">脑洞、伏笔或金句内容</label>
+                        <textarea v-model="editingItem.content" rows="6" class="w-full px-3 py-2 rounded bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 outline-none focus:border-emerald-500 resize-none text-sm" placeholder="随手记下剧情反转、伏笔大纲、极具张力的台词对白..."></textarea>
+                    </div>
+                    <div v-if="editingItem.type === 'timeline'">
+                        <label class="text-xs opacity-60 block mb-1">事件详细描述</label>
+                        <textarea v-model="editingItem.details" rows="6" class="w-full px-3 py-2 rounded bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 outline-none focus:border-emerald-500 resize-none text-sm" placeholder="详细描述该时间节点发生的事件、涉及的人物、产生的影响等..."></textarea>
+                    </div>
+                </div>
+                <div class="flex justify-end gap-2 mt-6 border-t pt-4 border-black/5 dark:border-white/5">
+                    <button @click="editingItem = null" class="px-4 py-2 rounded bg-slate-500/10 text-sm">取消</button>
+                    <button @click="saveEditItem" class="px-4 py-2 rounded bg-emerald-600 text-white text-sm font-semibold">保存修改</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Faction Type Manager Modal -->
+        <div v-if="showFactionTypeManager" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-[60] flex items-center justify-center p-4">
+            <div class="w-full max-w-md bg-white dark:bg-slate-900 rounded-xl shadow-2xl p-6 border border-black/10 dark:border-white/10 text-slate-800 dark:text-slate-100">
+                <h3 class="text-lg font-bold font-novel mb-4 text-amber-600">管理势力类型</h3>
+                <div class="flex flex-col gap-3">
+                    <label class="text-xs opacity-60">在这里添加、修改或删除全局的势力分类。</label>
+                    <div class="flex gap-2">
+                        <input type="text" v-model="newFactionType" @keyup.enter="addFactionType" placeholder="输入新类型后按回车" class="flex-1 w-full px-3 py-2 rounded bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 outline-none focus:border-amber-500 text-sm">
+                        <button @click="addFactionType" class="px-4 bg-emerald-600 text-white rounded text-sm font-semibold">添加</button>
+                    </div>
+                    <div class="flex flex-col gap-2 max-h-60 overflow-y-auto border-t border-black/5 dark:border-white/5 pt-3 mt-1 pr-2">
+                        <div v-for="(ftype, index) in currentBook.factionTypes" :key="index" class="flex items-center gap-2 group">
+                            <input type="text" v-model="currentBook.factionTypes[index]" @change="saveData" class="flex-1 w-full px-2 py-1 rounded bg-transparent hover:bg-black/5 dark:hover:bg-white/5 text-sm">
+                            <button @click="deleteFactionType(index)" class="text-red-500 opacity-50 group-hover:opacity-100">🗑️</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex justify-end gap-2 mt-6 border-t pt-4 border-black/5 dark:border-white/5">
+                    <button @click="showFactionTypeManager = false" class="px-4 py-2 rounded bg-slate-500/10 text-sm">关闭</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== 模态弹框二：大纲剧情卡片编辑窗口 ==================== -->
+        <div v-if="editingCard" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div class="w-full max-w-md bg-white dark:bg-slate-900 rounded-xl shadow-2xl p-6 border border-black/10 dark:border-white/10 text-slate-800 dark:text-slate-100">
+                <h3 class="text-lg font-bold font-novel mb-4 text-emerald-600">编修大纲情节卡片</h3>
+                <div class="flex flex-col gap-3">
+                    <div>
+                        <label class="text-xs opacity-60 block mb-1">情节名称 / 焦点</label>
+                        <input type="text" v-model="editingCard.title" class="w-full px-3 py-2 rounded bg-black/5 dark:bg-white/5 border border-black/10 outline-none focus:border-emerald-500 text-sm">
+                    </div>
+                    <div>
+                        <label class="text-xs opacity-60 block mb-1">情节所属节点</label>
+                        <select v-model="editingCard.columnId" class="w-full px-3 py-2 rounded bg-white dark:bg-slate-800 border text-sm text-slate-800 dark:text-slate-100">
+                            <option v-for="col in kanbanColumns" :key="col.id" :value="col.id">{{ col.name }}</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-xs opacity-60 block mb-1">细化大纲 / 发生事件简述</label>
+                        <textarea v-model="editingCard.desc" rows="4" class="w-full px-3 py-2 rounded bg-black/5 dark:bg-white/5 border outline-none focus:border-emerald-500 resize-none text-sm"></textarea>
+                    </div>
+                </div>
+                <div class="flex justify-end gap-2 mt-6 border-t pt-4">
+                    <button @click="editingCard = null" class="px-4 py-2 rounded bg-slate-500/10 text-sm">取消</button>
+                    <button @click="saveKanbanCard" class="px-4 py-2 rounded bg-emerald-600 text-white text-sm font-semibold">确认并保存</button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        const { createApp, ref, computed, watch, onMounted, nextTick } = Vue;
+
+        createApp({
+            setup() {
+                const theme = ref('light');
+
+                const showBookshelf = ref(true); // Control bookshelf vs workspace views
+                const activeView = ref('editor'); // 'editor', 'kanban', 'timeline', 'graph'
+                const books = ref([]);
+                const currentBookId = ref('');
+                const currentChapterId = ref('');
+                const rightTab = ref('characters');
+                const showExportMenu = ref(false);
+
+                // Editing config & Zen mode
+                const fontSize = ref(18);
+                const lineHeight = ref(1.6);
+                const zenMode = ref(false);
+
+                // Autocomplete
+                const showAutocomplete = ref(false);
+                const autocompleteQuery = ref('');
+                const autocompletePos = ref({ x: 0, y: 0 });
+                const currentTriggerIndex = ref(-1);
+
+                // Modals
+                const editingItem = ref(null);
+                const editingCard = ref(null);
+                const showFactionTypeManager = ref(false);
+                const newFactionType = ref('');
+
+                // Character List Improvements
+                const characterSortOrder = ref('default');
+                const expandedCharIds = ref([]);
+                const draggedCharId = ref(null);
+
+                // Chapter Volume improvements
+                const expandedVolumeIds = ref([]);
+
+                // Timeline Drag & Drop
+                const draggedTimelineId = ref(null);
+
+                // Graph Improvements
+                const focusedGraphNodeId = ref(null);
+
+                // Kanban board
+                const kanbanColumns = ref([
+                    { id: 'col-1', name: '起 (开端起势)' },
+                    { id: 'col-2', name: '承 (铺垫发展)' },
+                    { id: 'col-3', name: '转 (冲突高潮)' },
+                    { id: 'col-4', name: '合 (收尾结局)' }
+                ]);
+                const draggedCardId = ref(null);
+                
+                const importFileInput = ref(null);
+
+                const themeClass = computed(() => {
+                    if (theme.value === 'dark') return 'bg-slate-950 text-slate-100 dark';
+                    if (theme.value === 'sepia') return 'bg-[#f4ecd8] text-amber-950';
+                    return 'bg-[#fffdf9] text-slate-900';
+                });
+
+                const currentBook = computed(() => books.value.find(b => b.id === currentBookId.value));
+                const currentChapter = computed(() => {
+                    if (!currentBook.value) return null;
+                    for (const volume of currentBook.value.volumes) {
+                        const chapter = volume.chapters.find(c => c.id === currentChapterId.value);
+                        if (chapter) return chapter;
+                    }
+                    return null;
+                });
+
+                const wordCount = computed(() => {
+                    if (!currentChapter.value) return 0;
+                    return (currentChapter.value.content || '').replace(/\s+/g, '').length;
+                });
+
+                const totalWordCount = computed(() => {
+                    if (!currentBook.value) return 0;
+                    return getBookWordCount(currentBook.value);
+                });
+
+                // Global Stats for Bookshelf
+                const totalGlobalWordCount = computed(() => {
+                    return books.value.reduce((total, b) => total + getBookWordCount(b), 0);
+                });
+
+                const totalGlobalCharactersCount = computed(() => {
+                    return books.value.reduce((total, b) => total + (b.characters?.length || 0), 0);
+                });
+
+                const totalGlobalLoresCount = computed(() => {
+                    return books.value.reduce((total, b) => total + (b.lores?.length || 0), 0);
+                });
+
+                // Helper for specific book word counts
+                const getBookWordCount = (book) => {
+                    if (!book || !book.volumes) return 0;
+                    let total = 0;
+                    book.volumes.forEach(vol => {
+                        vol.chapters.forEach(chap => {
+                            total += (chap.content || '').replace(/\s+/g, '').length;
+                        });
+                    });
+                    return total;
+                };
+
+                const getBookVolumesCount = (book) => {
+                    return book.volumes?.length || 0;
+                };
+
+                // Book Cover Gradients based on book ID
+                const getBookGradient = (id) => {
+                    const gradients = [
+                        'background: linear-gradient(135deg, #10b981 0%, #059669 100%);',
+                        'background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);',
+                        'background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);',
+                        'background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);',
+                        'background: linear-gradient(135deg, #ec4899 0%, #be185d 100%);',
+                        'background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%);',
+                    ];
+                    // Pick deterministic color gradient by hashing ID
+                    let hash = 0;
+                    const str = String(id);
+                    for (let i = 0; i < str.length; i++) {
+                        hash = str.charCodeAt(i) + ((hash << 5) - hash);
+                    }
+                    const idx = Math.abs(hash) % gradients.length;
+                    return gradients[idx];
+                };
+
+                // Character list improvements
+                const sortedCharacters = computed(() => {
+                    if (!currentBook.value) return [];
+                    const chars = [...currentBook.value.characters];
+                    if (characterSortOrder.value === 'name') {
+                        return chars.sort((a, b) => a.name.localeCompare(b.name, 'zh-Hans-CN'));
+                    }
+                    return chars;
+                });
+
+                const toggleCharExpand = (charId) => {
+                    const index = expandedCharIds.value.indexOf(charId);
+                    if (index > -1) {
+                        expandedCharIds.value.splice(index, 1);
+                    } else {
+                        expandedCharIds.value.push(charId);
+                    }
+                };
+
+                const expandAllChars = () => {
+                    if (!currentBook.value) return;
+                    expandedCharIds.value = currentBook.value.characters.map(c => c.id);
+                };
+
+                const collapseAllChars = () => {
+                    expandedCharIds.value = [];
+                };
+
+                const onCharDragStart = (event, charId) => {
+                    draggedCharId.value = charId;
+                    event.dataTransfer.effectAllowed = 'move';
+                };
+
+                const onCharDragOver = (event, charId) => {};
+
+                const onCharDrop = (event, dropOnCharId) => {
+                    if (!draggedCharId.value || draggedCharId.value === dropOnCharId) {
+                        draggedCharId.value = null;
+                        return;
+                    }
+
+                    const chars = currentBook.value.characters;
+                    const fromIndex = chars.findIndex(c => c.id === draggedCharId.value);
+                    const toIndex = chars.findIndex(c => c.id === dropOnCharId);
+
+                    if (fromIndex !== -1 && toIndex !== -1) {
+                        const [movedChar] = chars.splice(fromIndex, 1);
+                        chars.splice(toIndex, 0, movedChar);
+                        saveData();
+                    }
+                    draggedCharId.value = null;
+                };
+
+                const groupRelationships = (char) => {
+                    if (!char.relationships) return {};
+                    return char.relationships.reduce((acc, rel) => {
+                        if (!acc[rel.relationName]) {
+                            acc[rel.relationName] = [];
+                        }
+                        acc[rel.relationName].push(getCharacterNameById(rel.targetId));
+                        return acc;
+                    }, {});
+                };
+
+                const getFactionNameById = (id) => {
+                    if (!currentBook.value || !currentBook.value.factions) return '无 / 散修';
+                    const faction = currentBook.value.factions.find(f => f.id === id);
+                    return faction ? faction.name : '无 / 散修';
+                };
+
+                const filteredCharacters = computed(() => {
+                    if (!currentBook.value) return [];
+                    const q = autocompleteQuery.value.toLowerCase().replace('@', '');
+                    if (!q) return currentBook.value.characters;
+                    return currentBook.value.characters.filter(c => {
+                        const factionName = getFactionNameById(c.factionId).toLowerCase();
+                        return c.name.toLowerCase().includes(q) ||
+                               (c.role && c.role.toLowerCase().includes(q)) ||
+                               factionName.includes(q)
+                    });
+                });
+
+                const getCharacterNameById = (id) => {
+                    const char = currentBook.value?.characters.find(c => c.id === id);
+                    return char ? char.name : '神秘人';
+                };
+
+                // Graph improvements
+                const calculatedNodes = computed(() => {
+                    if (!currentBook.value || !currentBook.value.characters) return [];
+                    const chars = currentBook.value.characters;
+                    const len = chars.length;
+                    const r = 160;
+                    const cx = 250;
+                    const cy = 250;
+
+                    let relatedIds = new Set();
+                    if(focusedGraphNodeId.value) {
+                        relatedIds.add(focusedGraphNodeId.value);
+                        const focusedChar = chars.find(c => c.id === focusedGraphNodeId.value);
+                        if(focusedChar && focusedChar.relationships) {
+                            focusedChar.relationships.forEach(rel => relatedIds.add(rel.targetId));
+                        }
+                    }
+
+                    return chars.map((char, index) => {
+                        const angle = (index * 2 * Math.PI) / len;
+                        const isFocused = char.id === focusedGraphNodeId.value;
+                        let opacity = 1;
+                        if(focusedGraphNodeId.value && !relatedIds.has(char.id)) {
+                            opacity = 0.1;
+                        }
+
+                        return {
+                            id: char.id,
+                            name: char.name,
+                            x: cx + r * Math.cos(angle),
+                            y: cy + r * Math.sin(angle),
+                            isFocused,
+                            opacity,
+                        };
+                    });
+                });
+
+                const calculatedRelations = computed(() => {
+                    if (!currentBook.value) return [];
+                    const relations = [];
+                    const nodes = calculatedNodes.value;
+                    const handled = new Set(); // Avoid drawing lines twice
+
+                    currentBook.value.characters.forEach(char => {
+                        if (focusedGraphNodeId.value && char.id !== focusedGraphNodeId.value) {
+                             return;
+                        }
+
+                        const sourceNode = nodes.find(n => n.id === char.id);
+                        if (sourceNode && char.relationships) {
+                            char.relationships.forEach(rel => {
+                                const pairKey1 = `${char.id}-${rel.targetId}-${rel.relationName}`;
+                                const pairKey2 = `${rel.targetId}-${char.id}-${rel.relationName}`;
+                                if (handled.has(pairKey1) || handled.has(pairKey2)) return;
+
+                                const targetNode = nodes.find(n => n.id === rel.targetId);
+                                if (targetNode) {
+                                    const mx = (sourceNode.x + targetNode.x) / 2;
+                                    const my = (sourceNode.y + targetNode.y) / 2 - 5;
+                                    relations.push({
+                                        id: pairKey1,
+                                        x1: sourceNode.x,
+                                        y1: sourceNode.y,
+                                        x2: targetNode.x,
+                                        y2: targetNode.y,
+                                        mx: mx,
+                                        my: my,
+                                        label: rel.relationName
+                                    });
+                                    handled.add(pairKey1);
+                                    handled.add(pairKey2);
+                                }
+                            });
+                        }
+                    });
+                    return relations;
+                });
+
+                // Kanban drag & drop
+                const getCardsByColumn = (colId) => {
+                    if (!currentBook.value || !currentBook.value.kanbanCards) return [];
+                    return currentBook.value.kanbanCards.filter(c => c.columnId === colId);
+                };
+
+                const onDragStartCard = (event, cardId) => {
+                    draggedCardId.value = cardId;
+                };
+
+                const onDropCard = (event, columnId) => {
+                    if (draggedCardId.value && currentBook.value) {
+                        const card = currentBook.value.kanbanCards.find(c => c.id === draggedCardId.value);
+                        if (card) {
+                            card.columnId = columnId;
+                            saveData();
+                        }
+                        draggedCardId.value = null;
+                    }
+                };
+
+                // Timeline Drag & Drop
+                const onTimelineDragStart = (event, eventId) => {
+                    draggedTimelineId.value = eventId;
+                    event.dataTransfer.effectAllowed = 'move';
+                };
+                const onTimelineDragOver = (event, eventId) => {
+                    if (draggedTimelineId.value && draggedTimelineId.value !== eventId) {
+                        event.currentTarget.classList.add('drag-over');
+                    }
+                };
+                const onTimelineDragLeave = (event) => {
+                    event.currentTarget.classList.remove('drag-over');
+                };
+                const onTimelineDrop = (event, dropOnEventId) => {
+                    event.currentTarget.classList.remove('drag-over');
+                    if (!draggedTimelineId.value || draggedTimelineId.value === dropOnEventId) {
+                        draggedTimelineId.value = null;
+                        return;
+                    }
+                    const timeline = currentBook.value.timeline;
+                    const fromIndex = timeline.findIndex(e => e.id === draggedTimelineId.value);
+                    const toIndex = timeline.findIndex(e => e.id === dropOnEventId);
+                    if (fromIndex !== -1 && toIndex !== -1) {
+                        const [movedEvent] = timeline.splice(fromIndex, 1);
+                        timeline.splice(toIndex, 0, movedEvent);
+                        saveData();
+                    }
+                    draggedTimelineId.value = null;
+                };
+
+                const toggleZenMode = () => {
+                    zenMode.value = !zenMode.value;
+                };
+
+                // --- Core Data Management ---
+                const loadInitialData = () => {
+                    const savedTheme = localStorage.getItem('novelworld_theme_v2');
+                    if (savedTheme) theme.value = savedTheme;
+                    if (theme.value === 'dark') theme.value = 'light';
+
+                    const savedData = localStorage.getItem('novelworld_data_v8');
+                    if (savedData) {
+                        books.value = JSON.parse(savedData);
+
+                        // Data migration
+                        books.value.forEach(book => {
+                            // Migrate chapters to volumes
+                            if (book.chapters && !book.volumes) {
+                                book.volumes = [{
+                                    id: 'vol-' + Date.now(),
+                                    title: '正文',
+                                    chapters: book.chapters
+                                }];
+                                delete book.chapters;
+                            }
+                            if (!book.volumes) book.volumes = [];
+                            if (!book.factions) book.factions = [];
+                            if (!book.inspirations) book.inspirations = [];
+                            if (!book.timeline) book.timeline = [];
+                            if (!book.factionTypes) {
+                                book.factionTypes = ['⚔️ 门派宗门', '🏡 家庭家族', '🏢 财阀集团', '👑 帝国政权', '👁️ 神秘组织'];
+                            }
+
+                            book.characters.forEach(char => {
+                                if (!char.group) char.group = '';
+                                if (!char.relationships) char.relationships = [];
+                                if (char.desc === '双击此处或者点击编辑按钮开始编修。') char.desc = '';
+                            });
+                        });
+
+                        if (books.value.length > 0) {
+                            currentBookId.value = books.value[0].id;
+                        }
+                    } else {
+                        // Create a default initial world
+                        createNewBook('我的世界', true);
+                    }
+                };
+
+                const saveData = () => {
+                    localStorage.setItem('novelworld_data_v8', JSON.stringify(books.value));
+                };
+
+                // --- Import/Export Methods ---
+                const exportAllData = () => {
+                    const dataStr = localStorage.getItem('novelworld_data_v8');
+                    if (!dataStr) {
+                        alert('没有找到可以导出的数据！');
+                        return;
+                    }
+                    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+                    const url = URL.createObjectURL(dataBlob);
+                    const link = document.createElement('a');
+                    const timestamp = new Date().toISOString().slice(0, 19).replace('T', '_').replace(/:/g, '-');
+                    link.download = `我的世界_备份_${timestamp}.json`;
+                    link.href = url;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    URL.revokeObjectURL(url);
+                    alert('备份成功导出！请妥善保管备份文件。');
+                };
+
+                const triggerImport = () => {
+                    if (confirm('警告：导入备份将会覆盖当前所有数据！这是一个不可逆的操作。确定要继续吗？')) {
+                        importFileInput.value.click();
+                    }
+                };
+
+                const importDataFromFile = (event) => {
+                    const file = event.target.files[0];
+                    if (!file) return;
+
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        try {
+                            const data = JSON.parse(e.target.result);
+                            // Basic validation to check if it's a valid backup file
+                            if (Array.isArray(data) && data.every(item => item.id && item.title)) {
+                                localStorage.setItem('novelworld_data_v8', JSON.stringify(data));
+                                alert('数据导入成功！页面即将刷新以应用更改。');
+                                window.location.reload();
+                            } else {
+                                alert('导入失败：文件格式不正确，不是有效的备份文件。');
+                            }
+                        } catch (error) {
+                            alert(`导入失败：无法解析文件。错误: ${error.message}`);
+                        } finally {
+                            event.target.value = '';
+                        }
+                    };
+                    reader.onerror = () => {
+                        alert('读取文件时发生错误。');
+                        event.target.value = '';
+                    };
+                    reader.readAsText(file);
+                };
+
+                const toggleTheme = () => {
+                    if (theme.value === 'light') theme.value = 'sepia';
+                    else if (theme.value === 'sepia') theme.value = 'dark';
+                    else theme.value = 'light';
+                    localStorage.setItem('novelworld_theme_v2', theme.value);
+                };
+
+                const novelTextarea = ref(null);
+                const focusEditor = () => novelTextarea.value?.focus();
+
+                const onEditorInput = (event) => {
+                    saveData();
+                    const textarea = event.target;
+                    const value = textarea.value;
+                    const selectionStart = textarea.selectionStart;
+
+                    const textBeforeCursor = value.substring(0, selectionStart);
+                    const lastAtIdx = textBeforeCursor.lastIndexOf('@');
+
+                    if (lastAtIdx !== -1 && !/\s/.test(value.substring(lastAtIdx + 1, selectionStart))) {
+                        showAutocomplete.value = true;
+                        autocompleteQuery.value = textBeforeCursor.substring(lastAtIdx);
+                        currentTriggerIndex.value = lastAtIdx;
+
+                        const rect = textarea.getBoundingClientRect();
+                        autocompletePos.value = { x: rect.left + 20, y: rect.top + 40 };
+
+                    } else {
+                        showAutocomplete.value = false;
+                    }
+                };
+
+                const onEditorKeyDown = (event) => {
+                    if (showAutocomplete.value && event.key === 'Escape') {
+                        showAutocomplete.value = false;
+                        event.preventDefault();
+                    }
+                };
+
+                const insertCharacter = (name) => {
+                    if (!currentChapter.value || !novelTextarea.value) return;
+                    const textarea = novelTextarea.value;
+                    const value = currentChapter.value.content;
+                    const start = currentTriggerIndex.value;
+                    const selectionEnd = textarea.selectionStart;
+
+                    const textToInsert = `${name} `;
+                    const updatedText = value.substring(0, start) + textToInsert + value.substring(selectionEnd);
+                    currentChapter.value.content = updatedText;
+                    showAutocomplete.value = false;
+
+                    const newCursorPos = start + textToInsert.length;
+
+                    nextTick(() => {
+                        textarea.focus();
+                        textarea.setSelectionRange(newCursorPos, newCursorPos);
+                        saveData();
+                    });
+                };
+
+                const formatText = () => {
+                    if (!currentChapter.value) return;
+                    let text = currentChapter.value.content;
+                    let paragraphs = text.split('\n');
+                    paragraphs = paragraphs.map(p => {
+                        let cleanP = p.trim();
+                        if (cleanP === '') return '';
+                        if (!cleanP.startsWith('　　')) {
+                            cleanP = '　　' + cleanP;
+                        }
+                        return cleanP;
+                    });
+                    currentChapter.value.content = paragraphs.filter(p => p !== '').join('\n\n');
+                    saveData();
+                };
+
+                const exportBook = (format) => {
+                    if (!currentBook.value) return;
+                    showExportMenu.value = false;
+
+                    if (format === 'txt' && currentChapter.value) {
+                        const blob = new Blob([currentChapter.value.content], { type: 'text/plain;charset=utf-8' });
+                        const link = document.createElement('a');
+                        link.href = URL.createObjectURL(blob);
+                        link.download = `${currentChapter.value.title}.txt`;
+                        link.click();
+                    } else if (format === 'full-txt') {
+                        let fullText = '';
+                        currentBook.value.volumes.forEach(vol => {
+                            fullText += `\n\n--- ${vol.title} ---\n\n`;
+                            vol.chapters.forEach(chap => {
+                                fullText += `${chap.title}\n\n${chap.content}\n\n\n`;
+                            });
+                        });
+                        const blob = new Blob([fullText.trim()], { type: 'text/plain;charset=utf-8' });
+                        const link = document.createElement('a');
+                        link.href = URL.createObjectURL(blob);
+                        link.download = `${currentBook.value.title}(全本).txt`;
+                        link.click();
+                    }
+                };
+
+                const selectChapter = (id) => {
+                    currentChapterId.value = id;
+                };
+
+                // =============== Book & Bookshelf Operations ===============
+                const enterBook = (bookId) => {
+                    currentBookId.value = bookId;
+                    showBookshelf.value = false;
+                    switchBook();
+                };
+
+                const exitToBookshelf = () => {
+                    showBookshelf.value = true;
+                };
+
+                const switchBook = () => {
+                    if (!currentBook.value) return;
+                    expandedVolumeIds.value = currentBook.value.volumes.map(v => v.id); // Expand all volumes on switch
+                    if (currentBook.value.volumes.length > 0 && currentBook.value.volumes[0].chapters.length > 0) {
+                        currentChapterId.value = currentBook.value.volumes[0].chapters[0].id;
+                    } else {
+                        currentChapterId.value = '';
+                    }
+                };
+
+                const createNewBook = (titleFromPrompt, isDemo = false) => {
+                    const title = isDemo ? (typeof titleFromPrompt === 'string' ? titleFromPrompt : '我的世界') : prompt('请输入新书名字：', '我的未命名新书');
+                    if (!title || !title.trim()) return;
+
+                    const demoVolume = {
+                        id: 'vol-' + Date.now(), title: '正文', chapters: [
+                            { id: 'chap-' + Date.now(), title: '第一章 楔子', content: '　　笔墨落下，万象更新。' }
+                        ]
+                    };
+
+                    const newBook = {
+                        id: 'book-' + Date.now(),
+                        title: title.trim(),
+                        volumes: [demoVolume],
+                        characters: isDemo ? [
+                            { id: 'char-1', name: '陈长生', role: '主角', group: '主角团', factionId: 'fac-1', desc: '自幼修习九玄天剑，性格刚直。\n其佩剑乃上古神物。', relationships: [{ targetId: 'char-2', relationName: '道侣' }, { targetId: 'char-2', relationName: '宿敌' }] },
+                            { id: 'char-2', name: '苏映雪', role: '女主', group: '主角团', factionId: 'fac-2', desc: '手持寒冰法宝，性格冷静。', relationships: [{ targetId: 'char-1', relationName: '道侣' }, { targetId: 'char-1', relationName: '宿敌' }] },
+                        ] : [],
+                        factionTypes: ['⚔️ 门派宗门', '🏡 家庭家族', '🏢 财阀集团', '👑 帝国政权', '👁️ 神秘组织'],
+                        factions: isDemo ? [
+                            { id: 'fac-1', name: '大周陈氏', type: '🏡 家庭家族', desc: '盘踞中原的古老家族，以天剑血脉称雄一方。' },
+                            { id: 'fac-2', name: '九幽教', type: '⚔️ 门派宗门', desc: '极北寒渊下的隐世巨擘，掌控寂灭九幽魔气。' }
+                        ] : [],
+                        lores: [],
+                        inspirations: [],
+                        kanbanCards: [],
+                        timeline: isDemo ? [
+                            {id: 'tl-' + Date.now(), title: '故事开端', time: '神启元年', details: '主角陈长生在青云镇初次登场。'},
+                            {id: 'tl-' + (Date.now()+1), title: '遭遇宿敌', time: '神启二年春', details: '陈长生与来自九幽教的敌人首次交锋，虽胜但身负重伤。'},
+                        ] : []
+                    };
+                    books.value.push(newBook);
+                    currentBookId.value = newBook.id;
+                    if (!isDemo) {
+                        showBookshelf.value = false;
+                        switchBook();
+                    }
+                    saveData();
+                };
+
+                const renameCurrentBook = () => {
+                    if (!currentBook.value) return;
+                    const newTitle = prompt('请输入新的书籍名字：', currentBook.value.title);
+                    if (newTitle && newTitle.trim()) {
+                        currentBook.value.title = newTitle.trim();
+                        saveData();
+                    }
+                };
+
+                const renameSpecificBook = (book) => {
+                    const newTitle = prompt('请输入新的书籍名字：', book.title);
+                    if (newTitle && newTitle.trim()) {
+                        book.title = newTitle.trim();
+                        saveData();
+                    }
+                };
+
+                const deleteSpecificBook = (book) => {
+                    if (confirm(`⚠️ 警告：您确定要彻底删除书籍《${book.title}》吗？该书的所有内容都将被永久移除且不可撤销！`)) {
+                        books.value = books.value.filter(b => b.id !== book.id);
+                        if (currentBookId.value === book.id) {
+                            if (books.value.length > 0) {
+                                currentBookId.value = books.value[0].id;
+                            } else {
+                                currentBookId.value = '';
+                            }
+                        }
+                        saveData();
+                    }
+                };
+
+                const createNewVolume = () => {
+                    if (!currentBook.value) return;
+                    const title = prompt('请输入新分卷的标题：', `第${currentBook.value.volumes.length + 1}卷`);
+                    if (!title) return;
+                    const newVol = {
+                        id: 'vol-' + Date.now(),
+                        title: title,
+                        chapters: []
+                    };
+                    currentBook.value.volumes.push(newVol);
+                    expandedVolumeIds.value.push(newVol.id);
+                    saveData();
+                };
+
+                const renameVolume = (volume) => {
+                     const newTitle = prompt('请输入新的分卷标题：', volume.title);
+                     if (newTitle) {
+                         volume.title = newTitle;
+                         saveData();
+                     }
+                };
+
+                const deleteVolume = (volumeId) => {
+                    if (confirm('确定要删除该分卷及其下所有章节吗？此操作无法撤销！')) {
+                         currentBook.value.volumes = currentBook.value.volumes.filter(v => v.id !== volumeId);
+                         switchBook();
+                         saveData();
+                    }
+                };
+
+                const createNewChapter = (volumeId) => {
+                    const volume = currentBook.value.volumes.find(v => v.id === volumeId);
+                    if (!volume) return;
+                    const title = prompt('请输入章节名：', `第${volume.chapters.length + 1}章 新章节`);
+                    if (!title) return;
+                    const newChap = {
+                        id: 'chap-' + Date.now(),
+                        title: title,
+                        content: '　　新篇章从这里开启。'
+                    };
+                    volume.chapters.push(newChap);
+                    currentChapterId.value = newChap.id;
+                    saveData();
+                };
+
+                const renameChapter = (chapter) => {
+                    const newName = prompt('输入新的章节名称：', chapter.title);
+                    if (newName) {
+                        chapter.title = newName;
+                        saveData();
+                    }
+                };
+
+                const deleteChapter = (chapterId, volumeId) => {
+                    if (confirm('确定要删除该章节吗？此操作无法撤销。')) {
+                        const volume = currentBook.value.volumes.find(v => v.id === volumeId);
+                        if (volume) {
+                            volume.chapters = volume.chapters.filter(c => c.id !== chapterId);
+                            if (currentChapterId.value === chapterId) {
+                                switchBook();
+                            }
+                            saveData();
+                        }
+                    }
+                };
+
+                 const toggleVolume = (volumeId) => {
+                    const index = expandedVolumeIds.value.indexOf(volumeId);
+                    if (index > -1) {
+                        expandedVolumeIds.value.splice(index, 1);
+                    } else {
+                        expandedVolumeIds.value.push(volumeId);
+                    }
+                };
+
+                const expandAllVolumes = () => {
+                    if (!currentBook.value) return;
+                    expandedVolumeIds.value = currentBook.value.volumes.map(v => v.id);
+                };
+
+                const collapseAllVolumes = () => {
+                    expandedVolumeIds.value = [];
+                };
+
+                // =============== Character & Relationship Management ===============
+                const addNewCharacter = () => {
+                    if (!currentBook.value) return;
+                    const newChar = {
+                        id: 'char-' + Date.now(),
+                        name: '新角色',
+                        role: '配角',
+                        group: '',
+                        factionId: '',
+                        desc: '',
+                        relationships: []
+                    };
+                    currentBook.value.characters.push(newChar);
+                    saveData();
+                };
+
+                const editCharacter = (char) => {
+                    editingItem.value = {
+                        type: 'char',
+                        id: char.id,
+                        name: char.name,
+                        role: char.role,
+                        group: char.group || '',
+                        factionId: char.factionId || '',
+                        desc: char.desc,
+                        relationships: char.relationships ? JSON.parse(JSON.stringify(char.relationships)) : [],
+                        originalRelationships: char.relationships ? JSON.parse(JSON.stringify(char.relationships)) : [],
+                    };
+                };
+
+                const addRelationToEditing = () => {
+                    if (editingItem.value?.type === 'char') {
+                        editingItem.value.relationships.push({ targetId: '', relationName: '' });
+                    }
+                };
+
+                const deleteCharacter = (id) => {
+                    if (confirm('确认移除登场人物？')) {
+                        currentBook.value.characters = currentBook.value.characters.filter(c => c.id !== id);
+                        currentBook.value.characters.forEach(c => {
+                            if (c.relationships) {
+                                c.relationships = c.relationships.filter(r => r.targetId !== id);
+                            }
+                        });
+                        saveData();
+                    }
+                };
+
+                // =============== Faction Management ===============
+                const addNewFaction = () => {
+                    if (!currentBook.value) return;
+                    const newFaction = {
+                        id: 'faction-' + Date.now(),
+                        name: '新势力组织',
+                        type: currentBook.value.factionTypes[0] || '默认类型',
+                        desc: '在这里编写该势力家族的历史底蕴、规矩戒律，方便写作中随时参考。'
+                    };
+                    if (!currentBook.value.factions) currentBook.value.factions = [];
+                    currentBook.value.factions.push(newFaction);
+                    saveData();
+                };
+
+                const editFaction = (fac) => {
+                    editingItem.value = {
+                        type: 'faction',
+                        id: fac.id,
+                        name: fac.name,
+                        factionType: fac.type,
+                        desc: fac.desc
+                    };
+                };
+
+                const deleteFaction = (id) => {
+                    if (confirm('⚠️ 警告：确定彻底删除该势力/家族？删除后，所有归属于该势力的角色之势力状态将自动重置为【无/散修】，角色档案不会丢失。')) {
+                        currentBook.value.factions = currentBook.value.factions.filter(f => f.id !== id);
+                        currentBook.value.characters.forEach(c => {
+                            if (c.factionId === id) c.factionId = '';
+                        });
+                        saveData();
+                    }
+                };
+
+                const addFactionType = () => {
+                    const type = newFactionType.value.trim();
+                    if(type && !currentBook.value.factionTypes.includes(type)) {
+                        currentBook.value.factionTypes.push(type);
+                        newFactionType.value = '';
+                        saveData();
+                    }
+                };
+
+                const deleteFactionType = (index) => {
+                    if(confirm('删除此类型，使用此类型的势力不会被删除，但建议手动修改它们的类型。确定吗？')) {
+                        currentBook.value.factionTypes.splice(index, 1);
+                        saveData();
+                    }
+                };
+
+                const quickCreateFaction = () => {
+                    const name = prompt('请输入新势力/家族的名称：', '天海商会');
+                    if (!name || !name.trim()) return;
+                    const type = prompt(`请指定势力类型 (当前可选: ${currentBook.value.factionTypes.join(' / ')})：`, currentBook.value.factionTypes[0]);
+                    if (!type) return;
+
+                    const newFaction = {
+                        id: 'faction-' + Date.now(),
+                        name: name.trim(),
+                        type: type.trim(),
+                        desc: '快速注册并自动关联的势力背景。'
+                    };
+                    if (!currentBook.value.factions) currentBook.value.factions = [];
+                    currentBook.value.factions.push(newFaction);
+                    editingItem.value.factionId = newFaction.id;
+                    saveData();
+                };
+
+                // =============== Lore Management ===============
+                const addNewLore = () => {
+                    if (!currentBook.value) return;
+                    const newLore = {
+                        id: 'lore-' + Date.now(),
+                        key: '新设定词条',
+                        type: '常规设定',
+                        value: '在这里写下关于此设定的由来与背景，以便写作时随时对照。'
+                    };
+                    currentBook.value.lores.push(newLore);
+                    saveData();
+                };
+
+                const editLore = (lore) => {
+                    editingItem.value = {
+                        type: 'lore',
+                        id: lore.id,
+                        key: lore.key,
+                        category: lore.type,
+                        desc: lore.value
+                    };
+                };
+
+                const deleteLore = (id) => {
+                    if (confirm('确认废弃该设定？')) {
+                        currentBook.value.lores = currentBook.value.lores.filter(l => l.id !== id);
+                        saveData();
+                    }
+                };
+
+                // =============== Inspiration Management ===============
+                const addNewInspiration = () => {
+                    if (!currentBook.value) return;
+                    const newIns = {
+                        id: 'ins-' + Date.now(),
+                        title: '新想法/对白/大纲',
+                        content: '这里记下随时闪现的脑洞，或者是高潮桥段的一句对白。'
+                    };
+                    if (!currentBook.value.inspirations) currentBook.value.inspirations = [];
+                    currentBook.value.inspirations.push(newIns);
+                    saveData();
+                };
+
+                const editInspiration = (ins) => {
+                    editingItem.value = {
+                        type: 'inspiration',
+                        id: ins.id,
+                        title: ins.title,
+                        content: ins.content
+                    };
+                };
+
+                const deleteInspiration = (id) => {
+                    if (confirm('确定删除该条灵感备忘？')) {
+                        currentBook.value.inspirations = currentBook.value.inspirations.filter(i => i.id !== id);
+                        saveData();
+                    }
+                };
+
+                const insertInspirationToEditor = (content) => {
+                    insertAtCursor(content);
+                };
+
+                const insertAtCursor = (text) => {
+                    if (!currentChapter.value || !novelTextarea.value) {
+                        alert('请先选择或新建一个章节开始码字！');
+                        return;
+                    }
+                    const textarea = novelTextarea.value;
+                    const start = textarea.selectionStart;
+                    const end = textarea.selectionEnd;
+                    const originalContent = currentChapter.value.content;
+
+                    currentChapter.value.content = originalContent.substring(0, start) + text + originalContent.substring(end);
+
+                    const newPos = start + text.length;
+                    nextTick(() => {
+                        textarea.focus();
+                        textarea.setSelectionRange(newPos, newPos);
+                        saveData();
+                    });
+                };
+
+                // =============== Timeline Management ===============
+                const addNewTimelineEvent = () => {
+                    if (!currentBook.value) return;
+                    const newEvent = {
+                        id: 'tl-' + Date.now(),
+                        title: '新事件',
+                        time: '',
+                        details: ''
+                    };
+                    if (!currentBook.value.timeline) currentBook.value.timeline = [];
+                    currentBook.value.timeline.push(newEvent);
+                    saveData();
+                };
+
+                const editTimelineEvent = (event) => {
+                    editingItem.value = {
+                        type: 'timeline',
+                        id: event.id,
+                        title: event.title,
+                        time: event.time,
+                        details: event.details
+                    };
+                };
+
+                const deleteTimelineEvent = (id) => {
+                    if (confirm('确定删除该时间节点吗？')) {
+                        currentBook.value.timeline = currentBook.value.timeline.filter(e => e.id !== id);
+                        saveData();
+                    }
+                };
+
+                // =============== Universal Save Entry Point ===============
+                const saveEditItem = () => {
+                    if (!editingItem.value) return;
+                    const item = editingItem.value;
+
+                    if (item.type === 'char') {
+                        const sourceChar = currentBook.value.characters.find(c => c.id === item.id);
+                        if (sourceChar) {
+                            sourceChar.name = item.name;
+                            sourceChar.role = item.role;
+                            sourceChar.group = item.group;
+                            sourceChar.factionId = item.factionId;
+                            sourceChar.desc = item.desc;
+
+                            // --- Beautiful Symmetric Bidirectional Relationship Sync ---
+                            const newRels = item.relationships.filter(r => r.targetId && r.relationName);
+                            const oldRels = item.originalRelationships;
+
+                            // 1. Remove outdated relationships from targets
+                            oldRels.forEach(oldRel => {
+                                if (!newRels.some(newRel => newRel.targetId === oldRel.targetId && newRel.relationName === oldRel.relationName)) {
+                                    const targetChar = currentBook.value.characters.find(c => c.id === oldRel.targetId);
+                                    if(targetChar && targetChar.relationships) {
+                                        // Remove only matching pair specifically to support multiple relationships
+                                        targetChar.relationships = targetChar.relationships.filter(r => !(r.targetId === sourceChar.id && r.relationName === oldRel.relationName));
+                                    }
+                                }
+                            });
+
+                            // 2. Add or update new symmetric relationships on targets
+                            newRels.forEach(newRel => {
+                                const targetChar = currentBook.value.characters.find(c => c.id === newRel.targetId);
+                                if (targetChar) {
+                                    if (!targetChar.relationships) targetChar.relationships = [];
+
+                                    const reverseRelExists = targetChar.relationships.some(r => r.targetId === sourceChar.id && r.relationName === newRel.relationName);
+                                    if(!reverseRelExists) {
+                                        targetChar.relationships.push({ targetId: sourceChar.id, relationName: newRel.relationName });
+                                    }
+                                }
+                            });
+
+                            sourceChar.relationships = newRels;
+                        }
+                    } else if (item.type === 'lore') {
+                        const target = currentBook.value.lores.find(l => l.id === item.id);
+                        if (target) {
+                            target.key = item.key;
+                            target.type = item.category || '常规设定';
+                            target.value = item.desc;
+                        }
+                    } else if (item.type === 'faction') {
+                        const target = currentBook.value.factions.find(f => f.id === item.id);
+                        if (target) {
+                            target.name = item.name;
+                            target.type = item.factionType;
+                            target.desc = item.desc;
+                        }
+                    } else if (item.type === 'inspiration') {
+                        const target = currentBook.value.inspirations.find(i => i.id === item.id);
+                        if (target) {
+                            target.title = item.title;
+                            target.content = item.content;
+                        }
+                    } else if (item.type === 'timeline') {
+                        const target = currentBook.value.timeline.find(e => e.id === item.id);
+                        if (target) {
+                            target.title = item.title;
+                            target.time = item.time;
+                            target.details = item.details;
+                        }
+                    }
+
+                    editingItem.value = null;
+                    saveData();
+                };
+
+                // =============== Kanban Board Operations ===============
+                const addNewKanbanCard = () => {
+                    if (!currentBook.value) return;
+                    const newCard = {
+                        id: 'card-' + Date.now(),
+                        title: '新情节点',
+                        desc: '细化在该情节点陈述的核心矛盾。',
+                        columnId: 'col-1'
+                    };
+                    if (!currentBook.value.kanbanCards) currentBook.value.kanbanCards = [];
+                    currentBook.value.kanbanCards.push(newCard);
+                    saveData();
+                };
+
+                const editKanbanCard = (card) => {
+                    editingCard.value = JSON.parse(JSON.stringify(card));
+                };
+
+                const saveKanbanCard = () => {
+                    if (editingCard.value && currentBook.value) {
+                        const target = currentBook.value.kanbanCards.find(c => c.id === editingCard.value.id);
+                        if (target) {
+                            target.title = editingCard.value.title;
+                            target.desc = editingCard.value.desc;
+                            target.columnId = editingCard.value.columnId;
+                            saveData();
+                        }
+                    }
+                    editingCard.value = null;
+                };
+
+                const deleteKanbanCard = (id) => {
+                    if (confirm('确定要删除此卡片吗？')) {
+                        currentBook.value.kanbanCards = currentBook.value.kanbanCards.filter(c => c.id !== id);
+                        saveData();
+                    }
+                };
+
+                onMounted(() => {
+                    loadInitialData();
+                });
+
+                return {
+                    // refs
+                    theme, showBookshelf, activeView, books, currentBookId, currentChapterId, rightTab, showExportMenu, fontSize, lineHeight, zenMode, showAutocomplete, autocompletePos, editingItem, editingCard, showFactionTypeManager, newFactionType, characterSortOrder, expandedCharIds, expandedVolumeIds, focusedGraphNodeId, novelTextarea,
+                    importFileInput,
+                    // computed
+                    themeClass, currentBook, currentChapter, wordCount, totalWordCount, totalGlobalWordCount, totalGlobalCharactersCount, totalGlobalLoresCount, sortedCharacters, filteredCharacters, calculatedNodes, calculatedRelations,
+                    // methods
+                    getBookWordCount, getBookVolumesCount, getBookGradient, enterBook, exitToBookshelf,
+                    toggleTheme, selectChapter, createNewBook, switchBook, renameCurrentBook, renameSpecificBook, deleteSpecificBook,
+                    createNewVolume, renameVolume, deleteVolume, toggleVolume, expandAllVolumes, collapseAllVolumes,
+                    createNewChapter, renameChapter, deleteChapter,
+                    onEditorInput, onEditorKeyDown, insertCharacter, formatText, exportBook, toggleZenMode, focusEditor,
+                    addNewCharacter, editCharacter, addRelationToEditing, deleteCharacter, groupRelationships, getCharacterNameById, toggleCharExpand, expandAllChars, collapseAllChars, onCharDragStart, onCharDragOver, onCharDrop,
+                    addNewFaction, editFaction, deleteFaction, quickCreateFaction, getFactionNameById, addFactionType, deleteFactionType,
+                    addNewLore, editLore, deleteLore,
+                    addNewInspiration, editInspiration, deleteInspiration, insertInspirationToEditor,
+                    addNewTimelineEvent, editTimelineEvent, deleteTimelineEvent,
+                    onTimelineDragStart, onTimelineDragOver, onTimelineDragLeave, onTimelineDrop,
+                    saveEditItem,
+                    getCardsByColumn, onDragStartCard, onDropCard, addNewKanbanCard, editKanbanCard, saveKanbanCard, deleteKanbanCard,
+                    saveData,
+                    exportAllData, triggerImport, importDataFromFile,
+                    kanbanColumns,
+                };
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>
