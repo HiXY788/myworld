@@ -29,25 +29,42 @@
             border: 2px dashed #10b981;
             background-color: rgba(16, 185, 129, 0.1);
         }
-        /* Glassmorphism card effects */
+        /* Custom high-contrast theme adjustments */
+        .dark input, .dark textarea, .dark select {
+            color: #ffffff !important;
+        }
+        .dark textarea::placeholder {
+            color: #64748b !important;
+        }
+        /* Glassmorphism card effects with improved borders and dark mode contrast */
         .glass-card {
-            background: rgba(255, 255, 255, 0.45);
+            background: rgba(255, 255, 255, 0.6);
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
         }
         .dark .glass-card {
-            background: rgba(15, 23, 42, 0.45);
+            background: rgba(30, 41, 59, 0.7);
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
+            border-color: rgba(255, 255, 255, 0.15) !important;
         }
         /* Custom 3D Book Cover styling */
         .book-spine {
             box-shadow: 5px 5px 15px rgba(0,0,0,0.15), -1px 0px 3px rgba(255,255,255,0.2) inset;
         }
+        /* Active status contrast for inputs */
+        .dark .high-contrast-input {
+            background-color: #1e293b !important;
+            color: #ffffff !important;
+            border-color: #475569 !important;
+        }
+        .dark .high-contrast-input:focus {
+            border-color: #10b981 !important;
+        }
     </style>
 </head>
-<body class="bg-[#faf6ef] text-slate-800 transition-colors duration-300 overflow-hidden">
-    <div id="app" :class="themeClass" class="h-screen w-screen flex flex-col relative font-sans">
+<body class="bg-[#faf6ef] text-slate-800 transition-colors duration-300 overflow-hidden font-sans">
+    <div id="app" :class="themeClass" class="h-screen w-screen flex flex-col relative">
 
         <!-- ==================== 视图 A：大美书架主页 (刚点开网页时展示) ==================== -->
         <div v-if="showBookshelf" class="flex-1 w-full h-full overflow-y-auto px-6 py-12 md:px-16 md:py-16 flex flex-col items-center">
@@ -57,10 +74,10 @@
                     <h1 class="text-4xl md:text-5xl font-extrabold font-novel tracking-wider flex items-center gap-3">
                         <span class="text-emerald-600 dark:text-emerald-400 drop-shadow-sm">🌌</span> 我的世界
                     </h1>
-                    <p class="text-sm opacity-60 mt-2 font-medium tracking-wide">欢迎回来！在这里编织属于你的宏大世界、细腻情感与精妙史诗。</p>
+                    <p class="text-sm opacity-70 mt-2 font-medium tracking-wide dark:text-slate-300">欢迎回来！在这里编织属于你的宏大世界、细腻情感与精妙史诗。</p>
                 </div>
                 <div class="flex items-center gap-3">
-                    <button @click="toggleTheme" class="px-4 py-2.5 rounded-xl border border-black/10 dark:border-white/10 glass-card font-medium flex items-center gap-2 hover:scale-[1.02] active:scale-95 transition-all">
+                    <button @click="toggleTheme" class="px-4 py-2.5 rounded-xl border border-black/10 dark:border-white/20 glass-card font-semibold flex items-center gap-2 hover:scale-[1.02] active:scale-95 transition-all text-slate-800 dark:text-white">
                         {{ theme === 'light' ? '🌙 护眼暗夜' : theme === 'sepia' ? '☀️ 极简浅色' : '🪵 温润复古' }}
                     </button>
                     <!-- 全局数据管理 -->
@@ -76,28 +93,28 @@
 
             <!-- 统计数据面板卡片 -->
             <section class="w-full max-w-6xl grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
-                <div class="p-5 rounded-2xl border border-black/5 dark:border-white/5 bg-white/40 dark:bg-slate-900/40 backdrop-blur-md flex flex-col justify-between">
-                    <span class="text-xs opacity-50 font-bold uppercase tracking-wider">创作书籍数</span>
-                    <span class="text-3xl font-extrabold font-novel mt-2 text-emerald-600 dark:text-emerald-400">{{ books.length }} <span class="text-xs font-normal">本</span></span>
+                <div class="p-5 rounded-2xl border border-black/5 dark:border-white/10 bg-white/40 dark:bg-slate-900/60 backdrop-blur-md flex flex-col justify-between shadow-sm">
+                    <span class="text-xs opacity-60 dark:text-slate-400 font-bold uppercase tracking-wider">创作书籍数</span>
+                    <span class="text-3xl font-extrabold font-novel mt-2 text-emerald-600 dark:text-emerald-400">{{ books.length }} <span class="text-xs font-normal font-sans font-sans">本</span></span>
                 </div>
-                <div class="p-5 rounded-2xl border border-black/5 dark:border-white/5 bg-white/40 dark:bg-slate-900/40 backdrop-blur-md flex flex-col justify-between">
-                    <span class="text-xs opacity-50 font-bold uppercase tracking-wider">全书卷累计</span>
-                    <span class="text-3xl font-extrabold font-novel mt-2 text-amber-600 dark:text-amber-400">{{ totalGlobalWordCount }} <span class="text-xs font-normal">字</span></span>
+                <div class="p-5 rounded-2xl border border-black/5 dark:border-white/10 bg-white/40 dark:bg-slate-900/60 backdrop-blur-md flex flex-col justify-between shadow-sm">
+                    <span class="text-xs opacity-60 dark:text-slate-400 font-bold uppercase tracking-wider">全书卷累计</span>
+                    <span class="text-3xl font-extrabold font-novel mt-2 text-amber-600 dark:text-amber-400">{{ totalGlobalWordCount }} <span class="text-xs font-normal font-sans font-sans">字</span></span>
                 </div>
-                <div class="p-5 rounded-2xl border border-black/5 dark:border-white/5 bg-white/40 dark:bg-slate-900/40 backdrop-blur-md flex flex-col justify-between">
-                    <span class="text-xs opacity-50 font-bold uppercase tracking-wider">登场角色库</span>
-                    <span class="text-3xl font-extrabold font-novel mt-2 text-indigo-600 dark:text-indigo-400">{{ totalGlobalCharactersCount }} <span class="text-xs font-normal">位</span></span>
+                <div class="p-5 rounded-2xl border border-black/5 dark:border-white/10 bg-white/40 dark:bg-slate-900/60 backdrop-blur-md flex flex-col justify-between shadow-sm">
+                    <span class="text-xs opacity-60 dark:text-slate-400 font-bold uppercase tracking-wider">登场角色库</span>
+                    <span class="text-3xl font-extrabold font-novel mt-2 text-indigo-600 dark:text-indigo-400">{{ totalGlobalCharactersCount }} <span class="text-xs font-normal font-sans font-sans">位</span></span>
                 </div>
-                <div class="p-5 rounded-2xl border border-black/5 dark:border-white/5 bg-white/40 dark:bg-slate-900/40 backdrop-blur-md flex flex-col justify-between">
-                    <span class="text-xs opacity-50 font-bold uppercase tracking-wider">世界设定项</span>
-                    <span class="text-3xl font-extrabold font-novel mt-2 text-red-600 dark:text-red-400">{{ totalGlobalLoresCount }} <span class="text-xs font-normal">条</span></span>
+                <div class="p-5 rounded-2xl border border-black/5 dark:border-white/10 bg-white/40 dark:bg-slate-900/60 backdrop-blur-md flex flex-col justify-between shadow-sm">
+                    <span class="text-xs opacity-60 dark:text-slate-400 font-bold uppercase tracking-wider">世界设定项</span>
+                    <span class="text-3xl font-extrabold font-novel mt-2 text-red-600 dark:text-red-400">{{ totalGlobalLoresCount }} <span class="text-xs font-normal font-sans font-sans">条</span></span>
                 </div>
             </section>
 
             <!-- 书籍列表展示 -->
             <main class="w-full max-w-6xl flex-1 flex flex-col">
                 <div class="flex items-center justify-between mb-6">
-                    <h2 class="text-xl font-bold font-novel flex items-center gap-2">
+                    <h2 class="text-xl font-bold font-novel flex items-center gap-2 text-slate-800 dark:text-slate-100">
                         <span>📚</span> 书卷藏架
                     </h2>
                     <button @click="createNewBook" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-md shadow-emerald-600/10 transition-all">
@@ -109,7 +126,7 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 pb-12">
                     <!-- 单本图书展示 -->
                     <div v-for="book in books" :key="book.id" 
-                         class="group rounded-2xl border border-black/5 dark:border-white/5 bg-white/30 dark:bg-slate-900/30 backdrop-blur hover:bg-white/70 dark:hover:bg-slate-900/70 p-5 flex flex-col justify-between hover:shadow-xl hover:scale-[1.02] transition-all duration-300">
+                         class="group rounded-2xl border border-black/5 dark:border-white/10 bg-white/30 dark:bg-slate-900/30 backdrop-blur hover:bg-white/70 dark:hover:bg-slate-900/70 p-5 flex flex-col justify-between hover:shadow-xl hover:scale-[1.02] transition-all duration-300">
                         <!-- 书皮造型与文字 -->
                         <div class="flex gap-4">
                             <!-- 3D 拟真小书皮 -->
@@ -118,15 +135,15 @@
                                 <!-- 书脊仿真阴影 -->
                                 <div class="absolute left-0 top-0 bottom-0 w-2.5 bg-black/10"></div>
                                 <div class="absolute left-2.5 top-0 bottom-0 w-0.5 bg-white/10"></div>
-                                <div class="text-[10px] text-white/70 font-semibold truncate">{{ getBookVolumesCount(book) }} 卷</div>
-                                <h3 class="text-sm font-bold text-white font-novel line-clamp-3 leading-snug mt-1 text-center pr-2 pl-4 break-words select-all">{{ book.title }}</h3>
-                                <div class="text-[9px] text-white/60 text-right truncate">我的世界</div>
+                                <div class="text-[10px] text-white/80 font-bold truncate">{{ getBookVolumesCount(book) }} 卷</div>
+                                <h3 class="text-sm font-extrabold text-white font-novel line-clamp-3 leading-snug mt-1 text-center pr-2 pl-4 break-words select-all">{{ book.title }}</h3>
+                                <div class="text-[9px] text-white/70 text-right truncate">我的世界</div>
                             </div>
 
                             <!-- 数据统计明细 -->
                             <div class="flex-1 flex flex-col justify-between min-w-0 py-1">
-                                <h3 class="font-bold text-base truncate font-novel text-slate-800 dark:text-slate-100">{{ book.title }}</h3>
-                                <div class="flex flex-col gap-1 mt-2 text-xs opacity-70">
+                                <h3 class="font-extrabold text-base truncate font-novel text-slate-800 dark:text-slate-100">{{ book.title }}</h3>
+                                <div class="flex flex-col gap-1 mt-2 text-xs text-slate-600 dark:text-slate-300">
                                     <div class="flex items-center gap-1.5 truncate">📝 <b>{{ getBookWordCount(book) }}</b> 字</div>
                                     <div class="flex items-center gap-1.5 truncate">👥 <b>{{ book.characters?.length || 0 }}</b> 角色</div>
                                     <div class="flex items-center gap-1.5 truncate">🏰 <b>{{ book.factions?.length || 0 }}</b> 势力</div>
@@ -136,25 +153,25 @@
                         </div>
 
                         <!-- 底部控制按钮组 -->
-                        <div class="grid grid-cols-3 gap-2 mt-5 border-t border-black/5 dark:border-white/5 pt-4">
+                        <div class="grid grid-cols-3 gap-2 mt-5 border-t border-black/5 dark:border-white/10 pt-4">
                             <button @click="enterBook(book.id)" class="col-span-1 px-2.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold text-center transition-all">
                                 ✍️ 创作
                             </button>
-                            <button @click="renameSpecificBook(book)" class="px-2.5 py-1.5 hover:bg-black/5 dark:hover:bg-white/5 rounded-lg text-xs text-center border border-black/10 dark:border-white/10 transition-all">
+                            <button @click="renameSpecificBook(book)" class="px-2.5 py-1.5 hover:bg-black/5 dark:hover:bg-white/10 rounded-lg text-xs text-center border border-black/10 dark:border-white/20 transition-all text-slate-700 dark:text-slate-200">
                                 ✏️ 换名
                             </button>
-                            <button @click="deleteSpecificBook(book)" class="px-2.5 py-1.5 hover:bg-red-50 dark:hover:bg-red-950/20 text-red-600 dark:text-red-400 rounded-lg text-xs text-center border border-transparent hover:border-red-200 dark:hover:border-red-950 transition-all">
+                            <button @click="deleteSpecificBook(book)" class="px-2.5 py-1.5 hover:bg-red-50 dark:hover:bg-red-950/20 text-red-600 dark:text-red-400 rounded-lg text-xs text-center border border-transparent hover:border-red-200 dark:hover:border-red-900 transition-all">
                                 🗑️ 删除
                             </button>
                         </div>
                     </div>
 
                     <!-- 占位增加新书卡片 -->
-                    <div @click="createNewBook" class="rounded-2xl border-2 border-dashed border-black/10 dark:border-white/10 hover:border-emerald-500/40 cursor-pointer p-8 flex flex-col items-center justify-center text-center gap-3 group bg-transparent hover:bg-emerald-500/5 hover:scale-[1.01] transition-all duration-300">
-                        <span class="text-3xl text-black/30 dark:text-white/30 group-hover:text-emerald-500 group-hover:scale-110 transition-all">➕</span>
+                    <div @click="createNewBook" class="rounded-2xl border-2 border-dashed border-black/10 dark:border-white/20 hover:border-emerald-500/40 cursor-pointer p-8 flex flex-col items-center justify-center text-center gap-3 group bg-transparent hover:bg-emerald-500/5 hover:scale-[1.01] transition-all duration-300">
+                        <span class="text-3xl text-black/30 dark:text-white/40 group-hover:text-emerald-500 group-hover:scale-110 transition-all">➕</span>
                         <div class="flex flex-col gap-1">
-                            <span class="font-bold text-sm font-novel">创建全新的构想书籍</span>
-                            <span class="text-xs opacity-50">点击开始编织一段全新的旅程</span>
+                            <span class="font-bold text-sm font-novel text-slate-700 dark:text-slate-200">创建全新的构想书籍</span>
+                            <span class="text-xs text-slate-500 dark:text-slate-400">点击开始编织一段全新的旅程</span>
                         </div>
                     </div>
                 </div>
@@ -165,15 +182,15 @@
         <div v-else class="flex-1 w-full h-full flex relative overflow-hidden">
             <!-- ==================== 左侧导航栏 ==================== -->
             <aside class="w-64 flex-shrink-0 border-r flex flex-col transition-colors duration-300"
-                   :class="theme === 'dark' ? 'bg-slate-900 border-slate-800' : 'bg-[#f4eee1] border-amber-100'">
+                   :class="theme === 'dark' ? 'bg-slate-900 border-slate-800 text-slate-100 font-sans' : 'bg-[#f4eee1] border-amber-100 text-slate-800 font-sans'">
 
                 <!-- 标志与主菜单 -->
                 <div class="p-4 border-b flex flex-col gap-2" :class="theme === 'dark' ? 'border-slate-800' : 'border-amber-100'">
                     <div class="flex items-center justify-between">
-                        <span class="text-lg font-bold font-novel tracking-wider flex items-center gap-1.5">
+                        <span class="text-lg font-extrabold font-novel tracking-wider flex items-center gap-1.5">
                             <span>🖋️</span> 我的世界
                         </span>
-                        <button @click="exitToBookshelf" class="px-2.5 py-1 rounded bg-black/5 hover:bg-black/10 dark:bg-white/5 dark:hover:bg-white/10 text-xs font-bold flex items-center gap-1" title="返回藏书架">
+                        <button @click="exitToBookshelf" class="px-2.5 py-1 rounded bg-black/5 hover:bg-black/10 dark:bg-white/10 dark:hover:bg-white/20 text-xs font-bold flex items-center gap-1 text-slate-800 dark:text-white" title="返回藏书架">
                             📚 书架
                         </button>
                     </div>
@@ -181,31 +198,31 @@
                     <!-- 工作区导航标签 -->
                     <nav class="flex flex-col gap-1 mt-3">
                         <button @click="activeView = 'editor'"
-                                :class="['flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-all text-left', activeView === 'editor' ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/10' : 'hover:bg-black/5 dark:hover:bg-white/5']">
+                                :class="['flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-semibold transition-all text-left', activeView === 'editor' ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/10' : 'hover:bg-black/5 dark:hover:bg-white/5']">
                             📝 创作空间
                         </button>
                         <button @click="activeView = 'kanban'"
-                                :class="['flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-all text-left', activeView === 'kanban' ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/10' : 'hover:bg-black/5 dark:hover:bg-white/5']">
+                                :class="['flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-semibold transition-all text-left', activeView === 'kanban' ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/10' : 'hover:bg-black/5 dark:hover:bg-white/5']">
                             📋 剧情大纲看板
                         </button>
                         <button @click="activeView = 'timeline'"
-                                :class="['flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-all text-left', activeView === 'timeline' ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/10' : 'hover:bg-black/5 dark:hover:bg-white/5']">
+                                :class="['flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-semibold transition-all text-left', activeView === 'timeline' ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/10' : 'hover:bg-black/5 dark:hover:bg-white/5']">
                             ⏳ 故事时间轴
                         </button>
                         <button @click="activeView = 'graph'"
-                                :class="['flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-all text-left', activeView === 'graph' ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/10' : 'hover:bg-black/5 dark:hover:bg-white/5']">
+                                :class="['flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-semibold transition-all text-left', activeView === 'graph' ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/10' : 'hover:bg-black/5 dark:hover:bg-white/5']">
                             🕸️ 关系连线图谱
                         </button>
                     </nav>
 
                     <!-- 书籍切换与管理 -->
                     <div class="mt-2 pt-2 border-t" :class="theme === 'dark' ? 'border-slate-800' : 'border-amber-100'">
-                        <label class="text-xs opacity-50 flex items-center justify-between">
+                        <label class="text-xs opacity-60 dark:text-slate-400 flex items-center justify-between">
                             <span>当前正在创作</span>
                         </label>
                         <div class="flex gap-1 mt-1">
                             <select v-model="currentBookId" @change="switchBook"
-                                    class="flex-1 min-w-0 px-2 py-1.5 rounded text-sm bg-white/50 dark:bg-slate-800/80 border border-black/10 dark:border-white/10 outline-none text-slate-800 dark:text-slate-100">
+                                    class="flex-1 min-w-0 px-2 py-1.5 rounded text-sm bg-white/50 dark:bg-slate-800/80 border border-black/10 dark:border-white/20 outline-none text-slate-800 dark:text-slate-100 font-semibold">
                                 <option v-for="book in books" :key="book.id" :value="book.id">{{ book.title }}</option>
                             </select>
                             <button @click="renameCurrentBook" class="px-2 bg-amber-600 hover:bg-amber-700 text-white rounded text-sm" title="重命名当前书籍">✏️</button>
@@ -216,11 +233,11 @@
                 <!-- 章节列表 -->
                 <div class="flex-1 overflow-y-auto p-3 flex flex-col gap-1">
                     <div class="flex items-center justify-between px-2 py-1 text-xs">
-                        <span class="font-bold opacity-60 uppercase tracking-wider">章节目录</span>
-                        <div class="flex items-center gap-2">
+                        <span class="font-extrabold opacity-60 uppercase tracking-wider">章节目录</span>
+                        <div class="flex items-center gap-2 font-semibold">
                             <button @click="collapseAllVolumes" class="hover:underline">折叠</button>
                             <button @click="expandAllVolumes" class="hover:underline">展开</button>
-                            <button @click="createNewVolume" class="text-emerald-600 dark:text-emerald-400 hover:underline font-semibold">+ 新增分卷</button>
+                            <button @click="createNewVolume" class="text-emerald-600 dark:text-emerald-400 hover:underline font-bold">+ 新增分卷</button>
                         </div>
                     </div>
 
@@ -232,10 +249,10 @@
                                  :class="theme === 'dark' ? 'bg-slate-800/50 hover:bg-slate-800' : 'bg-amber-100/50 hover:bg-amber-100/80'">
                                  <div class="flex items-center gap-2">
                                     <span :class="['transition-transform', expandedVolumeIds.includes(volume.id) ? 'rotate-90' : '']">▶</span>
-                                    <span class="font-bold text-sm font-novel">{{ volume.title }}</span>
+                                    <span class="font-extrabold text-sm font-novel text-slate-800 dark:text-slate-150">{{ volume.title }}</span>
                                 </div>
                                 <div class="hidden group-hover:flex items-center gap-2 text-xs">
-                                    <button @click.stop="createNewChapter(volume.id)" class="text-emerald-600 dark:text-emerald-400 hover:underline">新增章节</button>
+                                    <button @click.stop="createNewChapter(volume.id)" class="text-emerald-600 dark:text-emerald-400 hover:underline font-bold">新增章节</button>
                                     <button @click.stop="renameVolume(volume)" title="重命名卷">✏️</button>
                                     <button @click.stop="deleteVolume(volume.id)" class="text-red-400" title="删除卷">🗑️</button>
                                 </div>
@@ -248,8 +265,8 @@
                                      :class="[
                                         'px-3 py-2 rounded-lg cursor-pointer transition-all flex items-center justify-between group text-sm',
                                         currentChapterId === chapter.id
-                                            ? 'bg-emerald-600 text-white font-bold shadow-md shadow-emerald-600/10'
-                                            : 'hover:bg-black/5 dark:hover:bg-white/5'
+                                            ? 'bg-emerald-600 text-white font-extrabold shadow-md shadow-emerald-600/10'
+                                            : 'hover:bg-black/5 dark:hover:bg-white/5 text-slate-700 dark:text-slate-300'
                                      ]">
                                     <span class="truncate flex items-center gap-2">
                                         <span>{{ chapter.title }}</span>
@@ -273,9 +290,9 @@
                     <div class="flex items-center justify-between">
                         <div class="flex items-center gap-1.5 opacity-75">
                             <span class="inline-block w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                            <span>本地实时自动保存</span>
+                            <span class="font-semibold text-slate-600 dark:text-slate-300">本地实时自动保存</span>
                         </div>
-                        <button @click="toggleTheme" class="p-1 rounded hover:bg-black/5 dark:hover:bg-white/5 text-xs font-bold" title="切换背景主题">
+                        <button @click="toggleTheme" class="p-1 rounded hover:bg-black/5 dark:hover:bg-white/5 text-xs font-bold text-slate-700 dark:text-slate-300" title="切换背景主题">
                             {{ theme === 'light' ? '🌙 护眼' : theme === 'sepia' ? '☀️ 浅色' : '🪵 温润' }}
                         </button>
                     </div>
@@ -284,7 +301,7 @@
 
             <!-- ==================== 中间主显示区 ==================== -->
             <main class="flex-1 flex flex-col relative transition-colors duration-300"
-                  :class="[theme === 'dark' ? 'bg-slate-950' : theme === 'sepia' ? 'bg-[#f4ecd8]' : 'bg-[#fffdf9]', zenMode ? 'p-0' : '']">
+                  :class="[theme === 'dark' ? 'bg-slate-950 text-slate-100' : theme === 'sepia' ? 'bg-[#f4ecd8] text-amber-950' : 'bg-[#fffdf9] text-slate-900', zenMode ? 'p-0' : '']">
 
                 <!-- ==================== 视图一：核心文本编辑器 ==================== -->
                 <div v-if="activeView === 'editor'" class="flex-1 flex flex-col h-full">
@@ -293,38 +310,38 @@
                             :class="theme === 'dark' ? 'border-slate-900 bg-slate-950/80' : 'border-amber-50/50 bg-[#fffdf9]/80'">
                         <div class="flex items-center gap-3" v-if="currentChapter">
                             <input type="text" v-model="currentChapter.title" @input="saveData"
-                                   class="bg-transparent font-novel font-bold text-lg border-b border-transparent hover:border-black/10 dark:hover:border-white/10 focus:border-emerald-500 outline-none px-1 py-0.5 w-64 transition-all">
-                            <span class="text-xs bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 px-2 py-0.5 rounded-full font-medium">
+                                   class="bg-transparent font-novel font-extrabold text-xl border-b border-transparent hover:border-black/10 dark:hover:border-white/20 focus:border-emerald-500 outline-none px-1 py-0.5 w-64 transition-all text-slate-900 dark:text-white">
+                            <span class="text-xs bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 px-2.5 py-1 rounded-full font-bold">
                                 {{ wordCount }} 字
                             </span>
                         </div>
-                        <div v-else class="text-sm opacity-50">请选择或新建一个章节开始码字</div>
+                        <div v-else class="text-sm opacity-60">请选择或新建一个章节开始码字</div>
 
                         <div class="flex items-center gap-3 text-sm">
                             <!-- 专注模式开关 -->
-                            <button @click="toggleZenMode" class="px-2.5 py-1.5 rounded-lg border hover:bg-black/5 dark:hover:bg-white/5 flex items-center gap-1"
+                            <button @click="toggleZenMode" class="px-2.5 py-1.5 rounded-lg border hover:bg-black/5 dark:hover:bg-white/10 flex items-center gap-1 font-bold text-slate-800 dark:text-white"
                                     :class="theme === 'dark' ? 'border-slate-800' : 'border-amber-100'" title="只留文字与灵感">
                                 👁️ 专注
                             </button>
 
-                            <div class="flex items-center gap-1 border rounded-lg p-0.5 bg-black/5 dark:bg-white/5" :class="theme === 'dark' ? 'border-slate-800' : 'border-amber-100'">
-                                <button @click="fontSize = Math.max(12, fontSize - 2)" class="w-6 h-6 rounded hover:bg-black/10 dark:hover:bg-white/10 flex items-center justify-center font-bold">A-</button>
-                                <span class="px-1 text-xs select-none font-semibold">{{ fontSize }}px</span>
-                                <button @click="fontSize = Math.min(32, fontSize + 2)" class="w-6 h-6 rounded hover:bg-black/10 dark:hover:bg-white/10 flex items-center justify-center font-bold">A+</button>
+                            <div class="flex items-center gap-1 border rounded-lg p-0.5 bg-black/5 dark:bg-white/10" :class="theme === 'dark' ? 'border-slate-800' : 'border-amber-100'">
+                                <button @click="fontSize = Math.max(12, fontSize - 2)" class="w-6 h-6 rounded hover:bg-black/10 dark:hover:bg-white/20 flex items-center justify-center font-extrabold text-slate-800 dark:text-white">A-</button>
+                                <span class="px-1 text-xs select-none font-bold text-slate-800 dark:text-slate-100">{{ fontSize }}px</span>
+                                <button @click="fontSize = Math.min(32, fontSize + 2)" class="w-6 h-6 rounded hover:bg-black/10 dark:hover:bg-white/20 flex items-center justify-center font-extrabold text-slate-800 dark:text-white">A+</button>
                             </div>
 
-                            <button @click="formatText" class="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-xs font-semibold flex items-center gap-1 transition-all">
+                            <button @click="formatText" class="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-xs font-bold flex items-center gap-1 transition-all">
                                 ✨ 一键排版
                             </button>
 
                             <!-- 导出菜单 -->
                             <div class="relative">
-                                <button @click="showExportMenu = !showExportMenu" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold flex items-center gap-1 transition-all">
+                                <button @click="showExportMenu = !showExportMenu" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold flex items-center gap-1 transition-all">
                                     📥 导出作品
                                 </button>
                                 <div v-if="showExportMenu" class="absolute right-0 mt-1.5 w-40 rounded-lg shadow-xl border bg-white dark:bg-slate-900 border-black/10 dark:border-white/10 py-1 z-50">
-                                    <button @click="exportBook('txt')" class="w-full text-left px-4 py-2 hover:bg-black/5 dark:hover:bg-white/5 text-xs">导出单章 (.TXT)</button>
-                                    <button @click="exportBook('full-txt')" class="w-full text-left px-4 py-2 hover:bg-black/5 dark:hover:bg-white/5 text-xs">整本导出 (.TXT)</button>
+                                    <button @click="exportBook('txt')" class="w-full text-left px-4 py-2 hover:bg-black/5 dark:hover:bg-white/10 text-xs font-semibold text-slate-800 dark:text-slate-200">导出单章 (.TXT)</button>
+                                    <button @click="exportBook('full-txt')" class="w-full text-left px-4 py-2 hover:bg-black/5 dark:hover:bg-white/10 text-xs font-semibold text-slate-800 dark:text-slate-200">整本导出 (.TXT)</button>
                                 </div>
                             </div>
                         </div>
@@ -332,18 +349,18 @@
 
                     <!-- 极简专注模式下的悬浮浮窗 -->
                     <div v-if="zenMode" class="absolute top-4 right-4 z-40 flex items-center gap-2">
-                        <span class="text-xs px-2 py-1 rounded bg-black/10 dark:bg-white/10 backdrop-blur">{{ wordCount }} 字</span>
-                        <button @click="toggleZenMode" class="px-2 py-1 text-xs rounded bg-emerald-600 hover:bg-emerald-700 text-white">退出专注</button>
+                        <span class="text-xs px-2.5 py-1 rounded bg-black/10 dark:bg-slate-800/80 backdrop-blur font-bold text-slate-800 dark:text-slate-100">{{ wordCount }} 字</span>
+                        <button @click="toggleZenMode" class="px-2 py-1 text-xs rounded bg-emerald-600 hover:bg-emerald-700 text-white font-bold">退出专注</button>
                     </div>
 
-                    <!-- 文本编辑核心视窗 -->
+                    <!-- 文本编辑核心视窗 (Ensured Extremely High Font Contrast in Dark Mode) -->
                     <div class="flex-1 overflow-y-auto px-12 py-8 flex flex-col items-center relative" @click="focusEditor">
                         <div v-if="currentChapter" class="w-full max-w-3xl flex flex-col gap-4 relative">
                             <!-- 角色 @ 联想 -->
                             <div v-if="showAutocomplete"
                                  :style="{ top: autocompletePos.y + 'px', left: autocompletePos.x + 'px' }"
-                                 class="absolute z-50 bg-white dark:bg-slate-900 border border-black/10 dark:border-white/10 shadow-2xl rounded-lg w-64 py-1 text-sm max-h-48 overflow-y-auto text-slate-800 dark:text-slate-100">
-                                <div class="px-3 py-1 text-xs opacity-50 border-b border-black/5 dark:border-white/5">推荐快捷插入角色</div>
+                                 class="absolute z-50 bg-white dark:bg-slate-900 border border-black/10 dark:border-white/20 shadow-2xl rounded-lg w-64 py-1 text-sm max-h-48 overflow-y-auto text-slate-800 dark:text-slate-100">
+                                <div class="px-3 py-1 text-xs opacity-60 border-b border-black/5 dark:border-white/10">推荐快捷插入角色</div>
                                 <button v-for="char in filteredCharacters" :key="char.id"
                                         @click="insertCharacter(char.name)"
                                         class="w-full text-left px-3 py-2 hover:bg-emerald-600 hover:text-white flex flex-col items-start transition-colors">
@@ -360,19 +377,19 @@
                                       @input="onEditorInput"
                                       @keydown="onEditorKeyDown"
                                       :style="{ fontSize: fontSize + 'px', lineHeight: lineHeight }"
-                                      class="w-full min-h-[65vh] bg-transparent outline-none border-none resize-none font-novel tracking-wide text-justify focus:ring-0 leading-relaxed"
+                                      class="w-full min-h-[65vh] bg-transparent outline-none border-none resize-none font-novel tracking-wide text-justify focus:ring-0 leading-relaxed text-slate-900 dark:text-white font-medium"
                                       placeholder="在这里输入章节内容... (输入 @ 可以快速联动登场人物设定与羁绊)"></textarea>
                         </div>
                     </div>
 
                     <!-- 编辑器底部状态条 -->
-                    <footer v-if="!zenMode" class="h-10 px-6 border-t flex items-center justify-between text-xs opacity-60"
-                            :class="theme === 'dark' ? 'border-slate-900 bg-slate-950' : 'border-amber-100 bg-[#fffdf9]'">
+                    <footer v-if="!zenMode" class="h-10 px-6 border-t flex items-center justify-between text-xs opacity-70"
+                            :class="theme === 'dark' ? 'border-slate-900 bg-slate-950 text-slate-300' : 'border-amber-100 bg-[#fffdf9] text-slate-600'">
                         <div class="flex items-center gap-4">
-                            <span>当前字数: <b>{{ wordCount }}</b></span>
-                            <span>当前书累计总字数: <b>{{ totalWordCount }}</b></span>
+                            <span>当前字数: <b class="text-slate-900 dark:text-white">{{ wordCount }}</b></span>
+                            <span>当前书累计总字数: <b class="text-slate-900 dark:text-white">{{ totalWordCount }}</b></span>
                         </div>
-                        <span>按 <kbd class="px-1 py-0.5 rounded border border-black/20 dark:border-white/20">@</kbd> 呼叫人物设定，实时掌控庞大阵线。</span>
+                        <span>按 <kbd class="px-1.5 py-0.5 rounded border border-black/20 dark:border-white/20 font-bold bg-black/5 dark:bg-slate-800">@</kbd> 呼叫人物设定，实时掌控庞大阵线。</span>
                     </footer>
                 </div>
 
@@ -380,8 +397,8 @@
                 <div v-if="activeView === 'kanban'" class="flex-1 flex flex-col h-full p-6 overflow-hidden">
                     <div class="flex items-center justify-between mb-4 flex-shrink-0">
                         <div>
-                            <h2 class="text-xl font-bold font-novel">剧情大纲分栏沙盘</h2>
-                            <p class="text-xs opacity-60 mt-0.5">将核心情节点做成卡片，通过拖拽进行“起、承、转、合”的情节节奏规划。</p>
+                            <h2 class="text-xl font-bold font-novel text-slate-900 dark:text-slate-100">剧情大纲分栏沙盘</h2>
+                            <p class="text-xs opacity-60 mt-0.5 text-slate-600 dark:text-slate-400">将核心情节点做成卡片，通过拖拽进行“起、承、转、合”的情节节奏规划。</p>
                         </div>
                         <button @click="addNewKanbanCard" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold">+ 增加情节卡片</button>
                     </div>
@@ -392,10 +409,10 @@
                              @dragover.prevent
                              @drop="onDropCard($event, col.id)"
                              class="rounded-xl p-3 flex flex-col gap-3 min-h-[400px] transition-colors"
-                             :class="theme === 'dark' ? 'bg-slate-900/40 border border-slate-800' : 'bg-[#f5ebd7] border border-amber-100'">
+                             :class="theme === 'dark' ? 'bg-slate-900 border border-slate-800' : 'bg-[#f5ebd7] border border-amber-100'">
 
                             <div class="flex items-center justify-between border-b pb-1.5" :class="theme === 'dark' ? 'border-slate-800' : 'border-amber-100'">
-                                <span class="font-bold text-sm font-novel text-emerald-700 dark:text-emerald-400">{{ col.name }}</span>
+                                <span class="font-extrabold text-sm font-novel text-emerald-700 dark:text-emerald-400">{{ col.name }}</span>
                                 <span class="text-xs bg-emerald-500/10 text-emerald-600 px-2 py-0.5 rounded-full font-bold">
                                     {{ getCardsByColumn(col.id).length }}
                                 </span>
@@ -407,15 +424,15 @@
                                      draggable="true"
                                      @dragstart="onDragStartCard($event, card.id)"
                                      class="p-3 rounded-lg border bg-white dark:bg-slate-800 hover:shadow-md cursor-grab active:cursor-grabbing transition-all group relative"
-                                     :class="theme === 'dark' ? 'border-slate-700' : 'border-amber-100'">
-                                    <div class="font-semibold text-xs text-amber-700 dark:text-amber-400 mb-1 flex items-center justify-between">
+                                     :class="theme === 'dark' ? 'border-slate-700 text-slate-100' : 'border-amber-100 text-slate-800'">
+                                    <div class="font-extrabold text-xs text-amber-700 dark:text-amber-400 mb-1 flex items-center justify-between">
                                         <span>{{ card.title }}</span>
                                         <div class="opacity-0 group-hover:opacity-100 flex gap-1 transition-opacity">
                                             <button @click="editKanbanCard(card)" class="hover:text-emerald-600">✏️</button>
                                             <button @click="deleteKanbanCard(card.id)" class="hover:text-red-500">🗑️</button>
                                         </div>
                                     </div>
-                                    <p class="text-[11px] opacity-70 leading-relaxed">{{ card.desc || '双击编辑情节概述...' }}</p>
+                                    <p class="text-[11px] opacity-80 leading-relaxed font-medium text-slate-600 dark:text-slate-300">{{ card.desc || '双击编辑情节概述...' }}</p>
                                 </div>
                             </div>
                         </div>
@@ -426,8 +443,8 @@
                 <div v-if="activeView === 'timeline'" class="flex-1 flex flex-col h-full p-6 overflow-hidden">
                     <div class="flex items-center justify-between mb-4 flex-shrink-0">
                         <div>
-                            <h2 class="text-xl font-bold font-novel">故事时间轴</h2>
-                            <p class="text-xs opacity-60 mt-0.5">按时间/故事顺序编排关键事件，拖拽卡片调整顺序。</p>
+                            <h2 class="text-xl font-bold font-novel text-slate-900 dark:text-slate-100">故事时间轴</h2>
+                            <p class="text-xs opacity-60 mt-0.5 text-slate-600 dark:text-slate-400">按时间/故事顺序编排关键事件，拖拽卡片调整顺序。</p>
                         </div>
                         <button @click="addNewTimelineEvent" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold">+ 新增时间节点</button>
                     </div>
@@ -449,19 +466,19 @@
                                         {{ index + 1 }}
                                     </div>
 
-                                    <div class="p-4 rounded-lg border bg-white/40 dark:bg-slate-800/40 cursor-grab active:cursor-grabbing transition-all" :class="theme === 'dark' ? 'border-slate-800' : 'border-amber-100'">
+                                    <div class="p-4 rounded-lg border bg-white/40 dark:bg-slate-800/40 cursor-grab active:cursor-grabbing transition-all" :class="theme === 'dark' ? 'border-slate-800 text-slate-100' : 'border-amber-100 text-slate-800'">
                                         <div class="flex items-center justify-between mb-2">
                                             <div class="flex items-center gap-3">
-                                                <span class="font-bold text-sm font-novel text-amber-700 dark:text-amber-400">{{ event.title }}</span>
+                                                <span class="font-extrabold text-sm font-novel text-amber-700 dark:text-amber-400">{{ event.title }}</span>
                                                 <input type="text" v-model="event.time" @change="saveData" placeholder="时间/纪元/顺序..."
-                                                       class="text-xs px-2 py-0.5 rounded bg-black/5 dark:bg-white/5 border border-transparent hover:border-black/10 dark:hover:border-white/10 outline-none focus:border-emerald-500 transition-all w-32">
+                                                       class="text-xs px-2 py-0.5 rounded bg-black/5 dark:bg-slate-700 border border-transparent hover:border-black/10 dark:hover:border-white/20 outline-none focus:border-emerald-500 transition-all w-32 font-bold text-slate-800 dark:text-white">
                                             </div>
-                                            <div class="opacity-0 group-hover:opacity-100 flex gap-2 transition-opacity">
+                                            <div class="opacity-0 group-hover:opacity-100 flex gap-2 transition-opacity font-bold">
                                                 <button @click="editTimelineEvent(event)" class="text-sm hover:text-emerald-600">✏️ 编辑</button>
                                                 <button @click="deleteTimelineEvent(event.id)" class="text-sm hover:text-red-500">🗑️ 删除</button>
                                             </div>
                                         </div>
-                                        <p class="text-xs opacity-75 leading-relaxed whitespace-pre-wrap">{{ event.details || '点击“编辑”按钮添加事件详情...' }}</p>
+                                        <p class="text-xs opacity-90 leading-relaxed whitespace-pre-wrap font-medium text-slate-700 dark:text-slate-200">{{ event.details || '点击“编辑”按钮添加事件详情...' }}</p>
                                     </div>
                                 </div>
                             </div>
@@ -476,8 +493,8 @@
                 <div v-if="activeView === 'graph'" class="flex-1 flex flex-col p-6 overflow-hidden">
                     <div class="flex items-center justify-between mb-2 flex-shrink-0">
                         <div>
-                            <h2 class="text-xl font-bold font-novel">人际关系图志网络</h2>
-                            <p class="text-xs opacity-60">点击角色节点以聚焦其关系网，点击空白处返回全局视图。</p>
+                            <h2 class="text-xl font-bold font-novel text-slate-900 dark:text-slate-100">人际关系图志网络</h2>
+                            <p class="text-xs opacity-60 text-slate-600 dark:text-slate-400">点击角色节点以聚焦其关系网，点击空白处返回全局视图。</p>
                         </div>
                     </div>
 
@@ -519,7 +536,7 @@
                         </svg>
 
                         <!-- 图例浮窗 -->
-                        <div class="absolute bottom-4 left-4 text-[10px] p-3 rounded-lg border bg-white/80 dark:bg-slate-900/80 backdrop-blur"
+                        <div class="absolute bottom-4 left-4 text-[10px] p-3 rounded-lg border bg-white/80 dark:bg-slate-900/85 backdrop-blur text-slate-800 dark:text-slate-100"
                              :class="theme === 'dark' ? 'border-slate-800' : 'border-amber-100'">
                             <div class="flex items-center gap-1.5 mb-1"><span class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-600"></span> 登场角色节点 (点击可聚焦)</div>
                             <div class="flex items-center gap-1.5"><span class="inline-block w-4 h-0.5 border-t border-dashed border-emerald-500"></span> 人际多向连线 / 羁绊</div>
@@ -531,33 +548,33 @@
 
             <!-- ==================== 右侧栏：角色、势力与设定集 ==================== -->
             <aside v-if="!zenMode" class="w-80 flex-shrink-0 border-l flex flex-col transition-colors duration-300"
-                   :class="theme === 'dark' ? 'bg-slate-900 border-slate-800' : 'bg-[#f4eee1] border-amber-100'">
+                   :class="theme === 'dark' ? 'bg-slate-900 border-slate-800 text-slate-100' : 'bg-[#f4eee1] border-amber-100 text-slate-800'">
 
                 <!-- 标签页头部 -->
                 <div class="grid grid-cols-4 border-b text-center text-xs" :class="theme === 'dark' ? 'border-slate-800' : 'border-amber-100'">
                     <button @click="rightTab = 'characters'"
-                            :class="['py-2.5 font-bold border-b-2 transition-all',
+                            :class="['py-2.5 font-extrabold border-b-2 transition-all',
                                      rightTab === 'characters'
                                      ? 'border-emerald-600 text-emerald-600 dark:text-emerald-400'
                                      : 'border-transparent opacity-60 hover:opacity-100']">
                         👥 角色 ({{ currentBook?.characters?.length || 0 }})
                     </button>
                     <button @click="rightTab = 'factions'"
-                            :class="['py-2.5 font-bold border-b-2 transition-all',
+                            :class="['py-2.5 font-extrabold border-b-2 transition-all',
                                      rightTab === 'factions'
                                      ? 'border-emerald-600 text-emerald-600 dark:text-emerald-400'
                                      : 'border-transparent opacity-60 hover:opacity-100']">
                         🏰 势力 ({{ currentBook?.factions?.length || 0 }})
                     </button>
                     <button @click="rightTab = 'lores'"
-                            :class="['py-2.5 font-bold border-b-2 transition-all',
+                            :class="['py-2.5 font-extrabold border-b-2 transition-all',
                                      rightTab === 'lores'
                                      ? 'border-emerald-600 text-emerald-600 dark:text-emerald-400'
                                      : 'border-transparent opacity-60 hover:opacity-100']">
                         🗺️ 设定 ({{ currentBook?.lores?.length || 0 }})
                     </button>
                     <button @click="rightTab = 'inspirations'"
-                            :class="['py-2.5 font-bold border-b-2 transition-all',
+                            :class="['py-2.5 font-extrabold border-b-2 transition-all',
                                      rightTab === 'inspirations'
                                      ? 'border-emerald-600 text-emerald-600 dark:text-emerald-400'
                                      : 'border-transparent opacity-60 hover:opacity-100']">
@@ -569,16 +586,16 @@
                 <div v-show="rightTab === 'characters'" class="flex-1 overflow-y-auto p-4 flex flex-col gap-4">
                     <div class="flex items-center justify-between text-xs">
                          <div class="relative">
-                            <select v-model="characterSortOrder" class="pl-2 pr-6 py-1 rounded-md text-xs font-semibold bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 outline-none appearance-none cursor-pointer">
+                            <select v-model="characterSortOrder" class="pl-2 pr-6 py-1 rounded-md text-xs font-semibold bg-black/5 dark:bg-slate-800 border border-black/10 dark:border-white/20 outline-none appearance-none cursor-pointer text-slate-850 dark:text-white font-sans">
                                 <option value="default">默认顺序</option>
                                 <option value="name">名字顺序</option>
                                 <option value="custom">自定义</option>
                             </select>
-                        </div>
-                        <div class="flex gap-2">
-                            <button @click="collapseAllChars" class="font-semibold text-slate-500 hover:underline">折叠</button>
-                            <button @click="expandAllChars" class="font-semibold text-slate-500 hover:underline">展开</button>
-                            <button @click="addNewCharacter" class="text-emerald-600 dark:text-emerald-400 hover:underline font-semibold">+ 新角色</button>
+                         </div>
+                        <div class="flex gap-2 font-semibold">
+                            <button @click="collapseAllChars" class="text-slate-500 dark:text-slate-400 hover:underline">折叠</button>
+                            <button @click="expandAllChars" class="text-slate-500 dark:text-slate-400 hover:underline">展开</button>
+                            <button @click="addNewCharacter" class="text-emerald-600 dark:text-emerald-400 hover:underline font-bold">+ 新角色</button>
                         </div>
                     </div>
 
@@ -593,37 +610,37 @@
                              :class="[theme === 'dark' ? 'border-slate-800' : 'border-amber-100']">
 
                             <div class="flex items-center justify-between cursor-pointer" @click="toggleCharExpand(char.id)">
-                                <span class="font-bold text-sm text-emerald-700 dark:text-emerald-400 font-novel">{{ char.name }}</span>
-                                <span v-if="!expandedCharIds.includes(char.id)" class="text-xs px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-600 dark:text-amber-400 font-semibold">{{ char.role }}</span>
+                                <span class="font-extrabold text-sm text-emerald-700 dark:text-emerald-400 font-novel">{{ char.name }}</span>
+                                <span v-if="!expandedCharIds.includes(char.id)" class="text-xs px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-600 dark:text-amber-400 font-extrabold">{{ char.role }}</span>
                             </div>
 
                             <!-- Collapsible section -->
                             <div v-if="expandedCharIds.includes(char.id)">
                                 <div class="flex items-center justify-between text-xs my-1">
-                                    <span class="px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-600 dark:text-amber-400 font-semibold">{{ char.role }}</span>
+                                    <span class="px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-600 dark:text-amber-400 font-extrabold">{{ char.role }}</span>
                                     <div v-if="char.group" class="flex items-center gap-1 opacity-90">
-                                         <span class="px-1.5 py-0.5 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-semibold">{{ char.group }}</span>
+                                         <span class="px-1.5 py-0.5 rounded-full bg-indigo-500/15 text-indigo-600 dark:text-indigo-350 font-extrabold">{{ char.group }}</span>
                                     </div>
                                 </div>
 
                                 <div v-if="char.factionId" class="text-xs flex items-center gap-1 opacity-90 mt-1.5">
-                                    <span class="opacity-50">🏰 势力/家族:</span>
+                                    <span class="opacity-60 dark:text-slate-400">🏰 势力/家族:</span>
                                     <span class="font-bold text-amber-700 dark:text-amber-400">{{ getFactionNameById(char.factionId) }}</span>
                                 </div>
 
-                                <p class="text-xs opacity-75 leading-relaxed whitespace-pre-wrap mt-2">{{ char.desc || '尚未编辑角色简介。' }}</p>
+                                <p class="text-xs opacity-90 leading-relaxed whitespace-pre-wrap mt-2 font-medium text-slate-700 dark:text-slate-200">{{ char.desc || '尚未编辑角色简介。' }}</p>
 
                                 <!-- Grouped Relationships with Linked bidirectional pairing fix -->
-                                <div v-if="char.relationships && char.relationships.length > 0" class="mt-2 pt-2 border-t border-dashed border-black/5 dark:border-white/5 flex flex-col gap-1.5">
-                                    <span class="text-[10px] opacity-40 font-bold uppercase tracking-wider">🔗 角色羁绊与联动:</span>
+                                <div v-if="char.relationships && char.relationships.length > 0" class="mt-2 pt-2 border-t border-dashed border-black/5 dark:border-white/15 flex flex-col gap-1.5">
+                                    <span class="text-[10px] opacity-60 dark:text-slate-400 font-bold uppercase tracking-wider">🔗 角色羁绊与联动:</span>
                                     <div v-for="(names, relationName) in groupRelationships(char)" :key="relationName" class="flex items-baseline gap-1.5 text-[11px]">
-                                        <b class="text-amber-700 dark:text-amber-300 font-bold">{{ relationName }}:</b>
-                                        <span class="text-emerald-700 dark:text-emerald-300">{{ names.join(', ') }}</span>
+                                        <b class="text-amber-700 dark:text-amber-300 font-extrabold">{{ relationName }}:</b>
+                                        <span class="text-emerald-700 dark:text-emerald-400 font-semibold">{{ names.join(', ') }}</span>
                                     </div>
                                 </div>
 
                                 <div class="flex items-center justify-end mt-2">
-                                    <div class="flex gap-1.5 text-xs">
+                                    <div class="flex gap-1.5 text-xs font-bold">
                                         <button @click="editCharacter(char)" class="hover:scale-105">✏️</button>
                                         <button @click="deleteCharacter(char.id)" class="text-red-500 hover:scale-105">🗑️</button>
                                     </div>
@@ -637,7 +654,7 @@
                 <div v-show="rightTab === 'factions'" class="flex-1 overflow-y-auto p-4 flex flex-col gap-4">
                     <div class="flex items-center justify-between">
                         <span class="text-xs font-bold opacity-60">势力与组织生态集</span>
-                        <button @click="addNewFaction" class="text-xs text-emerald-600 dark:text-emerald-400 hover:underline">+ 新增势力设定</button>
+                        <button @click="addNewFaction" class="text-xs text-emerald-600 dark:text-emerald-400 hover:underline font-semibold">+ 新增势力设定</button>
                     </div>
 
                     <div v-if="currentBook" class="flex flex-col gap-3">
@@ -645,17 +662,17 @@
                              class="p-3 rounded-lg border bg-white/40 dark:bg-slate-800/40 hover:bg-white/60 dark:hover:bg-slate-800/60 transition-all flex flex-col gap-1 group relative"
                              :class="theme === 'dark' ? 'border-slate-800' : 'border-amber-100'">
                             <div class="flex items-center justify-between">
-                                <span class="font-bold text-sm font-novel text-amber-700 dark:text-amber-400">{{ fac.name }}</span>
-                                <span class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-semibold">{{ fac.type }}</span>
+                                <span class="font-extrabold text-sm font-novel text-amber-700 dark:text-amber-400">{{ fac.name }}</span>
+                                <span class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-extrabold">{{ fac.type }}</span>
                             </div>
-                            <p class="text-xs opacity-75 leading-relaxed whitespace-pre-wrap">{{ fac.desc || '暂无详细背景介绍。' }}</p>
+                            <p class="text-xs opacity-90 leading-relaxed whitespace-pre-wrap text-slate-700 dark:text-slate-200 font-medium">{{ fac.desc || '暂无详细背景介绍。' }}</p>
 
                             <!-- Show characters belonging to this faction -->
-                            <div class="mt-2 pt-2 border-t border-dashed border-black/5 dark:border-white/5 flex flex-col gap-1">
-                                <span class="text-[10px] opacity-40 font-bold uppercase tracking-wider">👥 麾下成员:</span>
+                            <div class="mt-2 pt-2 border-t border-dashed border-black/5 dark:border-white/15 flex flex-col gap-1">
+                                <span class="text-[10px] opacity-60 dark:text-slate-400 font-bold uppercase tracking-wider">👥 麾下成员:</span>
                                 <div class="flex flex-wrap gap-1">
                                     <span v-for="c in currentBook.characters.filter(char => char.factionId === fac.id)" :key="c.id"
-                                          class="text-[9px] px-1.5 py-0.5 rounded bg-slate-500/15 text-slate-700 dark:text-slate-300">
+                                          class="text-[9px] px-1.5 py-0.5 rounded bg-slate-500/15 text-slate-700 dark:text-slate-200 font-semibold">
                                         {{ c.name }}
                                     </span>
                                     <span v-if="currentBook.characters.filter(char => char.factionId === fac.id).length === 0" class="text-[9px] opacity-40 italic">
@@ -664,7 +681,7 @@
                                 </div>
                             </div>
 
-                            <div class="hidden group-hover:flex absolute right-2 bottom-2 gap-1.5 text-xs bg-slate-900/10 dark:bg-white/10 px-1.5 py-0.5 rounded backdrop-blur">
+                            <div class="hidden group-hover:flex absolute right-2 bottom-2 gap-1.5 text-xs bg-slate-900/10 dark:bg-slate-800 px-1.5 py-0.5 rounded backdrop-blur font-bold">
                                 <button @click="editFaction(fac)" class="hover:scale-105">✏️ 编辑</button>
                                 <button @click="deleteFaction(fac.id)" class="text-red-500 hover:scale-105">🗑️</button>
                             </div>
@@ -676,7 +693,7 @@
                 <div v-show="rightTab === 'lores'" class="flex-1 overflow-y-auto p-4 flex flex-col gap-4">
                     <div class="flex items-center justify-between">
                         <span class="text-xs font-bold opacity-60">背景大纲与世界设定</span>
-                        <button @click="addNewLore" class="text-xs text-emerald-600 dark:text-emerald-400 hover:underline">+ 新增设定词条</button>
+                        <button @click="addNewLore" class="text-xs text-emerald-600 dark:text-emerald-400 hover:underline font-semibold">+ 新增设定词条</button>
                     </div>
 
                     <div v-if="currentBook" class="flex flex-col gap-3">
@@ -684,11 +701,11 @@
                              class="p-3 rounded-lg border bg-white/40 dark:bg-slate-800/40 hover:bg-white/60 dark:hover:bg-slate-800/60 transition-all flex flex-col gap-1 group relative"
                              :class="theme === 'dark' ? 'border-slate-800' : 'border-amber-100'">
                             <div class="flex items-center justify-between">
-                                <span class="font-bold text-sm font-novel text-amber-700 dark:text-amber-400"># {{ lore.key }}</span>
-                                <span class="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-600 dark:text-amber-400 font-semibold">{{ lore.type }}</span>
+                                <span class="font-extrabold text-sm font-novel text-amber-700 dark:text-amber-400"># {{ lore.key }}</span>
+                                <span class="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-600 dark:text-amber-400 font-extrabold">{{ lore.type }}</span>
                             </div>
-                            <p class="text-xs opacity-75 leading-relaxed whitespace-pre-wrap">{{ lore.value || '词条尚未编修。' }}</p>
-                            <div class="hidden group-hover:flex absolute right-2 bottom-2 gap-1.5 text-xs bg-slate-900/10 dark:bg-white/10 px-1.5 py-0.5 rounded backdrop-blur">
+                            <p class="text-xs opacity-90 leading-relaxed whitespace-pre-wrap text-slate-700 dark:text-slate-200 font-medium">{{ lore.value || '词条尚未编修。' }}</p>
+                            <div class="hidden group-hover:flex absolute right-2 bottom-2 gap-1.5 text-xs bg-slate-900/10 dark:bg-slate-800 px-1.5 py-0.5 rounded backdrop-blur font-bold">
                                 <button @click="editLore(lore)" class="hover:scale-105">✏️ 编辑</button>
                                 <button @click="deleteLore(lore.id)" class="text-red-500 hover:scale-105">🗑️</button>
                             </div>
@@ -700,7 +717,7 @@
                 <div v-show="rightTab === 'inspirations'" class="flex-1 overflow-y-auto p-4 flex flex-col gap-4">
                     <div class="flex items-center justify-between">
                         <span class="text-xs font-bold opacity-60">灵感与碎片化脑洞库</span>
-                        <button @click="addNewInspiration" class="text-xs text-emerald-600 dark:text-emerald-400 hover:underline">+ 记录新脑洞</button>
+                        <button @click="addNewInspiration" class="text-xs text-emerald-600 dark:text-emerald-400 hover:underline font-semibold">+ 记录新脑洞</button>
                     </div>
 
                     <div v-if="currentBook" class="flex flex-col gap-3">
@@ -708,19 +725,19 @@
                              class="p-3 rounded-lg border bg-white/40 dark:bg-slate-800/40 hover:bg-white/60 dark:hover:bg-slate-800/60 transition-all flex flex-col gap-2 group relative"
                              :class="theme === 'dark' ? 'border-slate-800' : 'border-amber-100'">
                             <div class="flex items-center justify-between">
-                                <span class="font-bold text-sm font-novel text-indigo-700 dark:text-indigo-400">💡 {{ ins.title }}</span>
-                                <span class="text-[9px] px-1.5 py-0.5 rounded bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-semibold">备忘</span>
+                                <span class="font-extrabold text-sm font-novel text-indigo-700 dark:text-indigo-400 font-bold">💡 {{ ins.title }}</span>
+                                <span class="text-[9px] px-1.5 py-0.5 rounded bg-indigo-500/15 text-indigo-600 dark:text-indigo-350 font-extrabold">备忘</span>
                             </div>
-                            <p class="text-xs opacity-75 leading-relaxed whitespace-pre-wrap">{{ ins.content || '暂无脑洞细节。' }}</p>
+                            <p class="text-xs opacity-90 leading-relaxed whitespace-pre-wrap text-slate-700 dark:text-slate-200 font-medium">{{ ins.content || '暂无脑洞细节。' }}</p>
 
                             <!-- Actions -->
-                            <div class="flex gap-2 mt-1 pt-2 border-t border-dashed border-black/5 dark:border-white/5">
-                                <button @click="insertInspirationToEditor(ins.content)" class="text-[10px] px-2 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded font-semibold transition-all">
+                            <div class="flex gap-2 mt-1 pt-2 border-t border-dashed border-black/5 dark:border-white/10">
+                                <button @click="insertInspirationToEditor(ins.content)" class="text-[10px] px-2 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded font-extrabold transition-all">
                                     ✍️ 插入光标处
                                 </button>
                             </div>
 
-                            <div class="hidden group-hover:flex absolute right-2 bottom-2 gap-1.5 text-xs bg-slate-900/10 dark:bg-white/10 px-1.5 py-0.5 rounded backdrop-blur">
+                            <div class="hidden group-hover:flex absolute right-2 bottom-2 gap-1.5 text-xs bg-slate-900/10 dark:bg-slate-800 px-1.5 py-0.5 rounded backdrop-blur font-bold">
                                 <button @click="editInspiration(ins)" class="hover:scale-105">✏️ 编辑</button>
                                 <button @click="deleteInspiration(ins.id)" class="text-red-500 hover:scale-105">🗑️</button>
                             </div>
@@ -732,7 +749,7 @@
 
         <!-- ==================== 模态弹框一：通用属性编辑窗口 ==================== -->
         <div v-if="editingItem" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in">
-            <div class="w-full max-w-lg bg-white dark:bg-slate-900 rounded-xl shadow-2xl p-6 border border-black/10 dark:border-white/10 max-h-[90vh] overflow-y-auto text-slate-800 dark:text-slate-100">
+            <div class="w-full max-w-lg bg-white dark:bg-slate-900 rounded-xl shadow-2xl p-6 border border-black/10 dark:border-white/20 max-h-[90vh] overflow-y-auto text-slate-800 dark:text-slate-100">
                 <h3 class="text-lg font-bold font-novel mb-4 text-emerald-600 dark:text-emerald-400">
                     {{ editingItem.type === 'char' ? '编修人物卡片与关系网' :
                        editingItem.type === 'lore' ? '编修世界观设定' :
@@ -743,20 +760,20 @@
                     <!-- 人物属性 -->
                     <div v-if="editingItem.type === 'char'">
                         <label class="text-xs opacity-60 block mb-1">角色姓名</label>
-                        <input type="text" v-model="editingItem.name" class="w-full px-3 py-2 rounded bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 outline-none focus:border-emerald-500 text-sm">
+                        <input type="text" v-model="editingItem.name" class="w-full px-3 py-2 rounded bg-black/5 dark:bg-slate-800 border border-black/10 dark:border-white/20 outline-none focus:border-emerald-500 text-sm high-contrast-input">
                     </div>
                     <div v-if="editingItem.type === 'char'">
                         <label class="text-xs opacity-60 block mb-1">身份地位</label>
-                        <input type="text" v-model="editingItem.role" class="w-full px-3 py-2 rounded bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 outline-none focus:border-emerald-500 text-sm">
+                        <input type="text" v-model="editingItem.role" class="w-full px-3 py-2 rounded bg-black/5 dark:bg-slate-800 border border-black/10 dark:border-white/20 outline-none focus:border-emerald-500 text-sm high-contrast-input">
                     </div>
                     <div v-if="editingItem.type === 'char'">
                         <label class="text-xs opacity-60 block mb-1">角色分组 (例如：男主团, 反派, etc.)</label>
-                        <input type="text" v-model="editingItem.group" placeholder="例如：男主团, 后宫, 反派..." class="w-full px-3 py-2 rounded bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 outline-none focus:border-emerald-500 text-sm">
+                        <input type="text" v-model="editingItem.group" placeholder="例如：男主团, 后宫, 反派..." class="w-full px-3 py-2 rounded bg-black/5 dark:bg-slate-800 border border-black/10 dark:border-white/20 outline-none focus:border-emerald-500 text-sm high-contrast-input">
                     </div>
                     <div v-if="editingItem.type === 'char'">
                         <label class="text-xs opacity-60 block mb-1">所属家族 / 门派势力 (动态复用下拉)</label>
                         <div class="flex gap-1.5">
-                            <select v-model="editingItem.factionId" class="flex-1 px-3 py-2 rounded bg-white dark:bg-slate-800 border border-black/10 dark:border-white/10 text-sm outline-none focus:border-emerald-500 text-slate-800 dark:text-slate-100">
+                            <select v-model="editingItem.factionId" class="flex-1 px-3 py-2 rounded bg-white dark:bg-slate-800 border border-black/10 dark:border-white/20 text-sm outline-none focus:border-emerald-500 text-slate-800 dark:text-slate-100 font-semibold">
                                 <option value="">-- 无 / 独立散修 --</option>
                                 <option v-for="fac in currentBook.factions" :key="fac.id" :value="fac.id">
                                     {{ fac.name }} ({{ fac.type }})
@@ -768,26 +785,26 @@
 
                     <div v-if="editingItem.type === 'char'">
                         <label class="text-xs opacity-60 block mb-1">角色简介、性格与设定</label>
-                        <textarea v-model="editingItem.desc" rows="5" class="w-full px-3 py-2 rounded bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 outline-none focus:border-emerald-500 resize-none text-sm" placeholder="在这里详细描述角色的背景故事、性格特点、外貌服饰等..."></textarea>
+                        <textarea v-model="editingItem.desc" rows="5" class="w-full px-3 py-2 rounded bg-black/5 dark:bg-slate-800 border border-black/10 dark:border-white/20 outline-none focus:border-emerald-500 resize-none text-sm high-contrast-input" placeholder="在这里详细描述角色的背景故事、性格特点、外貌服饰等..."></textarea>
                     </div>
 
                     <!-- 人物多向羁绊 (Linked bidirectional pairing layout) -->
-                    <div v-if="editingItem.type === 'char'" class="border-t border-black/5 dark:border-white/5 pt-3 mt-1">
+                    <div v-if="editingItem.type === 'char'" class="border-t border-black/5 dark:border-white/20 pt-3 mt-1">
                         <div class="flex items-center justify-between mb-2">
                             <label class="text-xs font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">🔗 绑定此人与其他角色的羁绊 (自动双向匹配同步)</label>
-                            <button @click="addRelationToEditing" class="text-xs text-emerald-600 dark:text-emerald-400 hover:underline">+ 绑定新羁绊</button>
+                            <button @click="addRelationToEditing" class="text-xs text-emerald-600 dark:text-emerald-400 hover:underline font-bold">+ 绑定新羁绊</button>
                         </div>
                         <div class="flex flex-col gap-2 max-h-36 overflow-y-auto pr-1">
                             <div v-for="(rel, index) in editingItem.relationships" :key="index" class="flex gap-2 items-center">
-                                <span class="text-xs opacity-50">至</span>
-                                <select v-model="rel.targetId" class="flex-1 px-2 py-1.5 rounded bg-white dark:bg-slate-800 border border-black/10 dark:border-white/10 text-xs text-slate-800 dark:text-slate-100">
+                                <span class="text-xs opacity-60">至</span>
+                                <select v-model="rel.targetId" class="flex-1 px-2 py-1.5 rounded bg-white dark:bg-slate-800 border border-black/10 dark:border-white/20 text-xs text-slate-800 dark:text-slate-100 font-semibold">
                                     <option value="">-- 选择目标角色 --</option>
                                     <option v-for="c in currentBook.characters" :key="c.id" :value="c.id" v-show="c.id !== editingItem.id">
                                         {{ c.name }} {{ c.factionId ? '(' + getFactionNameById(c.factionId) + ')' : '' }}
                                     </option>
                                 </select>
-                                <span class="text-xs opacity-50">关系</span>
-                                <input type="text" v-model="rel.relationName" placeholder="如: 恋人 / 宿敌" class="flex-1 px-2 py-1.5 rounded bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-xs outline-none focus:border-emerald-500">
+                                <span class="text-xs opacity-60">关系</span>
+                                <input type="text" v-model="rel.relationName" placeholder="如: 恋人 / 宿敌" class="flex-1 px-2 py-1.5 rounded bg-black/5 dark:bg-slate-800 border border-black/10 dark:border-white/20 text-xs outline-none focus:border-emerald-500 high-contrast-input">
                                 <button @click="editingItem.relationships.splice(index, 1)" class="text-red-400 text-xs hover:scale-110 px-1 font-bold">✕</button>
                             </div>
                         </div>
@@ -796,13 +813,13 @@
                     <!-- 设定词条 -->
                     <div v-if="editingItem.type === 'lore'">
                         <label class="text-xs opacity-60 block mb-1">设定词条主题</label>
-                        <input type="text" v-model="editingItem.key" class="w-full px-3 py-2 rounded bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 outline-none focus:border-emerald-500 text-sm">
+                        <input type="text" v-model="editingItem.key" class="w-full px-3 py-2 rounded bg-black/5 dark:bg-slate-800 border border-black/10 dark:border-white/20 outline-none focus:border-emerald-500 text-sm high-contrast-input">
                     </div>
                     <div v-if="editingItem.type === 'lore'">
                         <label class="text-xs opacity-60 block mb-1">设定类别</label>
                         <div class="flex gap-2">
-                            <input type="text" v-model="editingItem.category" placeholder="自定义类别" class="flex-1 px-3 py-2 rounded bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 outline-none focus:border-emerald-500 text-sm">
-                            <select @change="editingItem.category = $event.target.value; $event.target.value = ''" class="px-2 py-2 rounded bg-white dark:bg-slate-800 border text-xs text-slate-800 dark:text-slate-100">
+                            <input type="text" v-model="editingItem.category" placeholder="自定义类别" class="flex-1 px-3 py-2 rounded bg-black/5 dark:bg-slate-800 border border-black/10 dark:border-white/20 outline-none focus:border-emerald-500 text-sm high-contrast-input">
+                            <select @change="editingItem.category = $event.target.value; $event.target.value = ''" class="px-2 py-2 rounded bg-white dark:bg-slate-800 border text-xs text-slate-800 dark:text-slate-100 font-semibold">
                                 <option value="">-- 快速模板 --</option>
                                 <option value="地理与世界观">🌍 地理与世界观</option>
                                 <option value="势力与组织">🏰 势力与组织</option>
@@ -815,12 +832,12 @@
                     <!-- 势力与家族属性 -->
                     <div v-if="editingItem.type === 'faction'">
                         <label class="text-xs opacity-60 block mb-1">势力/家族名称</label>
-                        <input type="text" v-model="editingItem.name" class="w-full px-3 py-2 rounded bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 outline-none focus:border-emerald-500 text-sm">
+                        <input type="text" v-model="editingItem.name" class="w-full px-3 py-2 rounded bg-black/5 dark:bg-slate-800 border border-black/10 dark:border-white/20 outline-none focus:border-emerald-500 text-sm high-contrast-input">
                     </div>
                     <div v-if="editingItem.type === 'faction'">
                         <label class="text-xs opacity-60 block mb-1">势力类型</label>
                         <div class="flex gap-1.5">
-                            <select v-model="editingItem.factionType" class="flex-1 w-full px-3 py-2 rounded bg-white dark:bg-slate-800 border text-sm text-slate-800 dark:text-slate-100">
+                            <select v-model="editingItem.factionType" class="flex-1 w-full px-3 py-2 rounded bg-white dark:bg-slate-800 border text-sm text-slate-800 dark:text-slate-100 font-semibold">
                                 <option v-for="ftype in currentBook.factionTypes" :key="ftype" :value="ftype">{{ ftype }}</option>
                             </select>
                             <button @click="showFactionTypeManager = true" class="px-3 bg-amber-600 hover:bg-amber-700 text-white rounded text-xs font-semibold" title="管理所有势力类型">管理类型</button>
@@ -830,34 +847,34 @@
                     <!-- 灵感属性 -->
                     <div v-if="editingItem.type === 'inspiration'">
                         <label class="text-xs opacity-60 block mb-1">灵感标题/摘要</label>
-                        <input type="text" v-model="editingItem.title" class="w-full px-3 py-2 rounded bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 outline-none focus:border-emerald-500 text-sm">
+                        <input type="text" v-model="editingItem.title" class="w-full px-3 py-2 rounded bg-black/5 dark:bg-slate-800 border border-black/10 dark:border-white/20 outline-none focus:border-emerald-500 text-sm high-contrast-input">
                     </div>
 
                     <!-- 时间轴节点属性 -->
                     <div v-if="editingItem.type === 'timeline'">
                         <label class="text-xs opacity-60 block mb-1">事件标题</label>
-                        <input type="text" v-model="editingItem.title" class="w-full px-3 py-2 rounded bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 outline-none focus:border-emerald-500 text-sm">
+                        <input type="text" v-model="editingItem.title" class="w-full px-3 py-2 rounded bg-black/5 dark:bg-slate-800 border border-black/10 dark:border-white/20 outline-none focus:border-emerald-500 text-sm high-contrast-input">
                     </div>
                     <div v-if="editingItem.type === 'timeline'">
                         <label class="text-xs opacity-60 block mb-1">发生时间 / 顺序</label>
-                        <input type="text" v-model="editingItem.time" placeholder="例如：神启元年, 第 3 章后, 2049年..." class="w-full px-3 py-2 rounded bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 outline-none focus:border-emerald-500 text-sm">
+                        <input type="text" v-model="editingItem.time" placeholder="例如：神启元年, 第 3 章后, 2049年..." class="w-full px-3 py-2 rounded bg-black/5 dark:bg-slate-800 border border-black/10 dark:border-white/20 outline-none focus:border-emerald-500 text-sm high-contrast-input">
                     </div>
 
                     <!-- 文本详实信息 -->
                     <div v-if="editingItem.type === 'lore' || editingItem.type === 'faction'">
                         <label class="text-xs opacity-60 block mb-1">详细背景档案</label>
-                        <textarea v-model="editingItem.desc" rows="5" class="w-full px-3 py-2 rounded bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 outline-none focus:border-emerald-500 resize-none text-sm"></textarea>
+                        <textarea v-model="editingItem.desc" rows="5" class="w-full px-3 py-2 rounded bg-black/5 dark:bg-slate-800 border border-black/10 dark:border-white/20 outline-none focus:border-emerald-500 resize-none text-sm high-contrast-input"></textarea>
                     </div>
                     <div v-if="editingItem.type === 'inspiration'">
                         <label class="text-xs opacity-60 block mb-1">脑洞、伏笔或金句内容</label>
-                        <textarea v-model="editingItem.content" rows="6" class="w-full px-3 py-2 rounded bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 outline-none focus:border-emerald-500 resize-none text-sm" placeholder="随手记下剧情反转、伏笔大纲、极具张力的台词对白..."></textarea>
+                        <textarea v-model="editingItem.content" rows="6" class="w-full px-3 py-2 rounded bg-black/5 dark:bg-slate-800 border border-black/10 dark:border-white/20 outline-none focus:border-emerald-500 resize-none text-sm high-contrast-input" placeholder="随手记下剧情反转、伏笔大纲、极具张力的台词对白..."></textarea>
                     </div>
                     <div v-if="editingItem.type === 'timeline'">
                         <label class="text-xs opacity-60 block mb-1">事件详细描述</label>
-                        <textarea v-model="editingItem.details" rows="6" class="w-full px-3 py-2 rounded bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 outline-none focus:border-emerald-500 resize-none text-sm" placeholder="详细描述该时间节点发生的事件、涉及的人物、产生的影响等..."></textarea>
+                        <textarea v-model="editingItem.details" rows="6" class="w-full px-3 py-2 rounded bg-black/5 dark:bg-slate-800 border border-black/10 dark:border-white/20 outline-none focus:border-emerald-500 resize-none text-sm high-contrast-input" placeholder="详细描述该时间节点发生的事件、涉及的人物、产生的影响等..."></textarea>
                     </div>
                 </div>
-                <div class="flex justify-end gap-2 mt-6 border-t pt-4 border-black/5 dark:border-white/5">
+                <div class="flex justify-end gap-2 mt-6 border-t pt-4 border-black/5 dark:border-white/10">
                     <button @click="editingItem = null" class="px-4 py-2 rounded bg-slate-500/10 text-sm">取消</button>
                     <button @click="saveEditItem" class="px-4 py-2 rounded bg-emerald-600 text-white text-sm font-semibold">保存修改</button>
                 </div>
@@ -866,49 +883,49 @@
 
         <!-- Faction Type Manager Modal -->
         <div v-if="showFactionTypeManager" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-[60] flex items-center justify-center p-4">
-            <div class="w-full max-w-md bg-white dark:bg-slate-900 rounded-xl shadow-2xl p-6 border border-black/10 dark:border-white/10 text-slate-800 dark:text-slate-100">
+            <div class="w-full max-w-md bg-white dark:bg-slate-900 rounded-xl shadow-2xl p-6 border border-black/10 dark:border-white/20 text-slate-800 dark:text-slate-100">
                 <h3 class="text-lg font-bold font-novel mb-4 text-amber-600">管理势力类型</h3>
                 <div class="flex flex-col gap-3">
                     <label class="text-xs opacity-60">在这里添加、修改或删除全局的势力分类。</label>
                     <div class="flex gap-2">
-                        <input type="text" v-model="newFactionType" @keyup.enter="addFactionType" placeholder="输入新类型后按回车" class="flex-1 w-full px-3 py-2 rounded bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 outline-none focus:border-amber-500 text-sm">
+                        <input type="text" v-model="newFactionType" @keyup.enter="addFactionType" placeholder="输入新类型后按回车" class="flex-1 w-full px-3 py-2 rounded bg-black/5 dark:bg-slate-800 border border-black/10 dark:border-white/20 outline-none focus:border-amber-500 text-sm high-contrast-input">
                         <button @click="addFactionType" class="px-4 bg-emerald-600 text-white rounded text-sm font-semibold">添加</button>
                     </div>
-                    <div class="flex flex-col gap-2 max-h-60 overflow-y-auto border-t border-black/5 dark:border-white/5 pt-3 mt-1 pr-2">
+                    <div class="flex flex-col gap-2 max-h-60 overflow-y-auto border-t border-black/5 dark:border-white/10 pt-3 mt-1 pr-2">
                         <div v-for="(ftype, index) in currentBook.factionTypes" :key="index" class="flex items-center gap-2 group">
-                            <input type="text" v-model="currentBook.factionTypes[index]" @change="saveData" class="flex-1 w-full px-2 py-1 rounded bg-transparent hover:bg-black/5 dark:hover:bg-white/5 text-sm">
+                            <input type="text" v-model="currentBook.factionTypes[index]" @change="saveData" class="flex-1 w-full px-2 py-1 rounded bg-transparent hover:bg-black/5 dark:hover:bg-white/10 text-sm text-slate-800 dark:text-white font-semibold">
                             <button @click="deleteFactionType(index)" class="text-red-500 opacity-50 group-hover:opacity-100">🗑️</button>
                         </div>
                     </div>
                 </div>
-                <div class="flex justify-end gap-2 mt-6 border-t pt-4 border-black/5 dark:border-white/5">
-                    <button @click="showFactionTypeManager = false" class="px-4 py-2 rounded bg-slate-500/10 text-sm">关闭</button>
+                <div class="flex justify-end gap-2 mt-6 border-t pt-4 border-black/5 dark:border-white/10">
+                    <button @click="showFactionTypeManager = false" class="px-4 py-2 rounded bg-slate-500/10 text-sm font-semibold">关闭</button>
                 </div>
             </div>
         </div>
 
         <!-- ==================== 模态弹框二：大纲剧情卡片编辑窗口 ==================== -->
         <div v-if="editingCard" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-            <div class="w-full max-w-md bg-white dark:bg-slate-900 rounded-xl shadow-2xl p-6 border border-black/10 dark:border-white/10 text-slate-800 dark:text-slate-100">
+            <div class="w-full max-w-md bg-white dark:bg-slate-900 rounded-xl shadow-2xl p-6 border border-black/10 dark:border-white/20 text-slate-800 dark:text-slate-100">
                 <h3 class="text-lg font-bold font-novel mb-4 text-emerald-600">编修大纲情节卡片</h3>
                 <div class="flex flex-col gap-3">
                     <div>
                         <label class="text-xs opacity-60 block mb-1">情节名称 / 焦点</label>
-                        <input type="text" v-model="editingCard.title" class="w-full px-3 py-2 rounded bg-black/5 dark:bg-white/5 border border-black/10 outline-none focus:border-emerald-500 text-sm">
+                        <input type="text" v-model="editingCard.title" class="w-full px-3 py-2 rounded bg-black/5 dark:bg-slate-800 border outline-none focus:border-emerald-500 text-sm high-contrast-input">
                     </div>
                     <div>
                         <label class="text-xs opacity-60 block mb-1">情节所属节点</label>
-                        <select v-model="editingCard.columnId" class="w-full px-3 py-2 rounded bg-white dark:bg-slate-800 border text-sm text-slate-800 dark:text-slate-100">
+                        <select v-model="editingCard.columnId" class="w-full px-3 py-2 rounded bg-white dark:bg-slate-800 border text-sm text-slate-800 dark:text-slate-100 font-semibold">
                             <option v-for="col in kanbanColumns" :key="col.id" :value="col.id">{{ col.name }}</option>
                         </select>
                     </div>
                     <div>
                         <label class="text-xs opacity-60 block mb-1">细化大纲 / 发生事件简述</label>
-                        <textarea v-model="editingCard.desc" rows="4" class="w-full px-3 py-2 rounded bg-black/5 dark:bg-white/5 border outline-none focus:border-emerald-500 resize-none text-sm"></textarea>
+                        <textarea v-model="editingCard.desc" rows="4" class="w-full px-3 py-2 rounded bg-black/5 dark:bg-slate-800 border outline-none focus:border-emerald-500 resize-none text-sm high-contrast-input"></textarea>
                     </div>
                 </div>
                 <div class="flex justify-end gap-2 mt-6 border-t pt-4">
-                    <button @click="editingCard = null" class="px-4 py-2 rounded bg-slate-500/10 text-sm">取消</button>
+                    <button @click="editingCard = null" class="px-4 py-2 rounded bg-slate-500/10 text-sm font-semibold">取消</button>
                     <button @click="saveKanbanCard" class="px-4 py-2 rounded bg-emerald-600 text-white text-sm font-semibold">确认并保存</button>
                 </div>
             </div>
@@ -972,6 +989,15 @@
                 const draggedCardId = ref(null);
                 
                 const importFileInput = ref(null);
+
+                // Watch theme changes to automatically toggle Tailwind's global '.dark' selector on the html element
+                watch(theme, (newTheme) => {
+                    if (newTheme === 'dark') {
+                        document.documentElement.classList.add('dark');
+                    } else {
+                        document.documentElement.classList.remove('dark');
+                    }
+                }, { immediate: true });
 
                 const themeClass = computed(() => {
                     if (theme.value === 'dark') return 'bg-slate-950 text-slate-100 dark';
@@ -1038,7 +1064,6 @@
                         'background: linear-gradient(135deg, #ec4899 0%, #be185d 100%);',
                         'background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%);',
                     ];
-                    // Pick deterministic color gradient by hashing ID
                     let hash = 0;
                     const str = String(id);
                     for (let i = 0; i < str.length; i++) {
@@ -1091,6 +1116,7 @@
 
                     const chars = currentBook.value.characters;
                     const fromIndex = chars.findIndex(c => c.id === draggedCharId.value);
+                    const textToInsert = '';
                     const toIndex = chars.findIndex(c => c.id === dropOnCharId);
 
                     if (fromIndex !== -1 && toIndex !== -1) {
@@ -1280,7 +1306,6 @@
 
                         // Data migration
                         books.value.forEach(book => {
-                            // Migrate chapters to volumes
                             if (book.chapters && !book.volumes) {
                                 book.volumes = [{
                                     id: 'vol-' + Date.now(),
@@ -1308,7 +1333,6 @@
                             currentBookId.value = books.value[0].id;
                         }
                     } else {
-                        // Create a default initial world
                         createNewBook('我的世界', true);
                     }
                 };
@@ -1351,7 +1375,6 @@
                     reader.onload = (e) => {
                         try {
                             const data = JSON.parse(e.target.result);
-                            // Basic validation to check if it's a valid backup file
                             if (Array.isArray(data) && data.every(item => item.id && item.title)) {
                                 localStorage.setItem('novelworld_data_v8', JSON.stringify(data));
                                 alert('数据导入成功！页面即将刷新以应用更改。');
@@ -1907,7 +1930,6 @@
                                 if (!newRels.some(newRel => newRel.targetId === oldRel.targetId && newRel.relationName === oldRel.relationName)) {
                                     const targetChar = currentBook.value.characters.find(c => c.id === oldRel.targetId);
                                     if(targetChar && targetChar.relationships) {
-                                        // Remove only matching pair specifically to support multiple relationships
                                         targetChar.relationships = targetChar.relationships.filter(r => !(r.targetId === sourceChar.id && r.relationName === oldRel.relationName));
                                     }
                                 }
